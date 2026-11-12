@@ -1,0 +1,271 @@
+{
+  "version": "3.0.0-hierarchy-tema-subtema-video",
+  "school_name": "TKIT Al Madani",
+  "updated_at": "2026-10-23T14:55:00+07:00",
+  "themes": [
+    {
+      "id": "theme-profesi",
+      "label_kategori": "TEMA 1 • CITA-CITAKU",
+      "judul_tema": "Tema Profesi",
+      "slug": "tema-profesi",
+      "deskripsi": "Mengenal berbagai pekerjaan mulia di sekitar kita seperti Polisi, Pemadam Kebakaran, dan Dokter yang suka menolong sesama.",
+      "rentang_usia": "Usia 4–6 Tahun (TK A & TK B)",
+      "teks_tombol_kartu": "Mulai Belajar",
+      "warna_tema": "#0EA5E9",
+      "warna_hex": "#0EA5E9",
+      "ikon_emoji": "police",
+      "urutan": 1,
+      "status_publikasi": "PUBLISHED",
+      "is_published": true,
+      "subthemes": [
+        {
+          "id": "subtema-polisi",
+          "theme_id": "theme-profesi",
+          "judul_subtema": "Polisi & Keamanan Jalan Raya",
+          "deskripsi_subtema": "Mengenal tugas Pak Polisi mengatur lalu lintas serta cara tertib di jalan raya.",
+          "urutan": 1,
+          "videos": [
+            {
+              "id": "sub-polisi-sahabat",
+              "theme_id": "theme-profesi",
+              "subtheme_id": "subtema-polisi",
+              "label_episode": "Video 1",
+              "judul_video": "Polisi Sahabat Anak & Rambu Lalu Lintas",
+              "judul_subtema": "Polisi Sahabat Anak & Rambu Lalu Lintas",
+              "deskripsi_singkat": "Mengenal tugas Pak Polisi mengatur jalan raya, arti warna lampu lalu lintas, dan cara menyeberang jalan dengan aman.",
+              "youtube_url": "https://www.youtube.com/watch?v=L0MK7qz13bU",
+              "youtube_video_id": "L0MK7qz13bU",
+              "durasi_detik": 180,
+              "sumber_atribusi": "Kanal Edukasi Anak Indonesia (YouTube Standard Embed)",
+              "jenis_lisensi": "YouTube Standard License (Official IFrame Embed)",
+              "deklarasi_ai": "Kuis interaktif dan narasi suara otomatis disusun oleh Guru TKIT Al Madani.",
+              "urutan": 1,
+              "status_publikasi": "PUBLISHED",
+              "cue_points": [
+                {
+                  "id": "cp-polisi-1",
+                  "detik_muncul": 10,
+                  "tipe_interaksi": "MULTIPLE_CHOICE",
+                  "judul_pertanyaan": "Coba perhatikan! Kendaraan manakah yang memiliki sirine dan dikendarai oleh Pak Polisi?",
+                  "ikon_stimulus": "police",
+                  "payload_interaksi": {
+                    "options": [
+                      {
+                        "id": "opt-1",
+                        "label": "Mobil Patroli & Sirine",
+                        "emoji": "siren",
+                        "is_correct": true
+                      },
+                      {
+                        "id": "opt-2",
+                        "label": "Alat Masak Dapur",
+                        "emoji": "pan",
+                        "is_correct": false
+                      },
+                      {
+                        "id": "opt-3",
+                        "label": "Botol Susu Segar",
+                        "emoji": "milk",
+                        "is_correct": false
+                      }
+                    ],
+                    "feedback_benar": "MasyaAllah, tepat sekali! Pak Polisi mengendarai mobil patroli bersirine untuk menjaga ketertiban jalan.",
+                    "feedback_salah": "Coba lihat lagi ya, kendaraan Pak Polisi memiliki lampu sirine di atasnya!"
+                  }
+                },
+                {
+                  "id": "cp-polisi-2",
+                  "detik_muncul": 25,
+                  "tipe_interaksi": "FLASHCARD_REVEAL",
+                  "judul_pertanyaan": "Kalau lampu lalu lintas menyala warna MERAH, apa yang harus dilakukan pengendara?",
+                  "ikon_stimulus": "flashcard",
+                  "payload_interaksi": {
+                    "jawaban_balik": "Lampu MERAH artinya BERHENTI! Semua kendaraan harus berhenti di belakang garis putih agar penyeberang jalan aman."
+                  }
+                },
+                {
+                  "id": "cp-polisi-3",
+                  "detik_muncul": 40,
+                  "tipe_interaksi": "ACTION_PROMPT",
+                  "judul_pertanyaan": "Ayo berdiri tegak! Mari kita tirukan gerakan hormat yang gagah seperti Pak Polisi!",
+                  "ikon_stimulus": "action",
+                  "payload_interaksi": {
+                    "timer_detik": 8,
+                    "instruksi_tambahan": "Angkat tangan kanan ke dekat pelipis kanan sambil tersenyum semangat!"
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "subtema-dokter",
+          "theme_id": "theme-profesi",
+          "judul_subtema": "Dokter & Tenaga Kesehatan",
+          "deskripsi_subtema": "Mengenal tugas mulia Dokter dan Perawat serta kebiasaan hidup bersih dan sehat.",
+          "urutan": 2,
+          "videos": [
+            {
+              "id": "sub-dokter-kecil",
+              "theme_id": "theme-profesi",
+              "subtheme_id": "subtema-dokter",
+              "label_episode": "Video 1",
+              "judul_video": "Dokter & Perawat Penolong Kesehatan",
+              "judul_subtema": "Dokter & Perawat Penolong Kesehatan",
+              "deskripsi_singkat": "Mengenal tugas mulia Dokter dan Perawat, alat pemeriksaan stetoskop, serta kebiasaan mencuci tangan agar tubuh sehat.",
+              "youtube_url": "https://www.youtube.com/watch?v=e_04ZrNroTo",
+              "youtube_video_id": "e_04ZrNroTo",
+              "durasi_detik": 180,
+              "sumber_atribusi": "Lagu & Animasi Anak Sehat (YouTube Standard Embed)",
+              "jenis_lisensi": "YouTube Standard License (Official IFrame Embed)",
+              "deklarasi_ai": "Kuis interaktif dan narasi suara otomatis disusun oleh Guru TKIT Al Madani.",
+              "urutan": 1,
+              "status_publikasi": "PUBLISHED",
+              "cue_points": [
+                {
+                  "id": "cp-dokter-1",
+                  "detik_muncul": 10,
+                  "tipe_interaksi": "MULTIPLE_CHOICE",
+                  "judul_pertanyaan": "Benda apakah yang dipakai Bu Dokter untuk mendengarkan detak jantung kita?",
+                  "ikon_stimulus": "doctor",
+                  "payload_interaksi": {
+                    "options": [
+                      {
+                        "id": "opt-1",
+                        "label": "Stetoskop Medis",
+                        "emoji": "stethoscope",
+                        "is_correct": true
+                      },
+                      {
+                        "id": "opt-2",
+                        "label": "Helm Proyek",
+                        "emoji": "helmet",
+                        "is_correct": false
+                      },
+                      {
+                        "id": "opt-3",
+                        "label": "Wajan Penggorengan",
+                        "emoji": "pan",
+                        "is_correct": false
+                      }
+                    ],
+                    "feedback_benar": "Hebat sekali! Stetoskop digunakan dokter untuk memeriksa suara detak jantung dan pernapasan.",
+                    "feedback_salah": "Belum tepat, alat dokter yang dikalungkan di leher namanya Stetoskop ya teman-teman!"
+                  }
+                },
+                {
+                  "id": "cp-dokter-2",
+                  "detik_muncul": 25,
+                  "tipe_interaksi": "ACTION_PROMPT",
+                  "judul_pertanyaan": "Yuk kita praktikkan gerakan mencuci tangan 6 langkah supaya kuman pergi!",
+                  "ikon_stimulus": "action",
+                  "payload_interaksi": {
+                    "timer_detik": 8,
+                    "instruksi_tambahan": "Gosok telapak tangan, punggung tangan, dan sela-sela jari bersama-sama!"
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "theme-fauna",
+      "label_kategori": "TEMA 2 • ALAM SEKITAR",
+      "judul_tema": "Tema Fauna (Hewan Ciptaan Allah)",
+      "slug": "tema-fauna",
+      "deskripsi": "Mengenal berbagai hewan ternak, hewan peliharaan, dan burung di alam sekitar beserta suara dan manfaatnya bagi manusia.",
+      "rentang_usia": "Usia 4–6 Tahun (TK A & TK B)",
+      "teks_tombol_kartu": "Mulai Belajar",
+      "warna_tema": "#10B981",
+      "warna_hex": "#10B981",
+      "ikon_emoji": "cow",
+      "urutan": 2,
+      "status_publikasi": "PUBLISHED",
+      "is_published": true,
+      "subthemes": [
+        {
+          "id": "subtema-hewan-ternak",
+          "theme_id": "theme-fauna",
+          "judul_subtema": "Hewan Ternak di Desa",
+          "deskripsi_subtema": "Mengenal hewan ternak penghasil susu dan daging beserta makanannya.",
+          "urutan": 1,
+          "videos": [
+            {
+              "id": "sub-hewan-ternak",
+              "theme_id": "theme-fauna",
+              "subtheme_id": "subtema-hewan-ternak",
+              "label_episode": "Video 1",
+              "judul_video": "Mengenal Sapi dan Hewan Ternak di Desa",
+              "judul_subtema": "Mengenal Sapi dan Hewan Ternak di Desa",
+              "deskripsi_singkat": "Belajar tentang makanan kesukaan sapi, menirukan suara hewan ternak, dan bersyukur atas manfaat susu sapi segar.",
+              "youtube_url": "https://www.youtube.com/watch?v=_6HzoUcx3eo",
+              "youtube_video_id": "_6HzoUcx3eo",
+              "durasi_detik": 180,
+              "sumber_atribusi": "Edukasi Anak Ceria — Lagu Hewan Ternak (YouTube Embed)",
+              "jenis_lisensi": "YouTube Standard License (Official IFrame Embed)",
+              "deklarasi_ai": "Kuis interaktif dan narasi suara otomatis disusun oleh Guru TKIT Al Madani.",
+              "urutan": 1,
+              "status_publikasi": "PUBLISHED",
+              "cue_points": [
+                {
+                  "id": "cp-sapi-1",
+                  "detik_muncul": 10,
+                  "tipe_interaksi": "MULTIPLE_CHOICE",
+                  "judul_pertanyaan": "Makanan apakah yang paling disukai oleh Sapi supaya tubuhnya sehat?",
+                  "ikon_stimulus": "cow",
+                  "payload_interaksi": {
+                    "options": [
+                      {
+                        "id": "opt-1",
+                        "label": "Rumput Hijau Segar",
+                        "emoji": "grass",
+                        "is_correct": true
+                      },
+                      {
+                        "id": "opt-2",
+                        "label": "Helm Besi",
+                        "emoji": "helmet",
+                        "is_correct": false
+                      },
+                      {
+                        "id": "opt-3",
+                        "label": "Alat Masak",
+                        "emoji": "pan",
+                        "is_correct": false
+                      }
+                    ],
+                    "feedback_benar": "Alhamdulillah, benar! Sapi suka makan rumput hijau segar dan menghasilkan susu yang bergizi.",
+                    "feedback_salah": "Yuk coba pilih yang warnanya hijau segar di padang rumput!"
+                  }
+                },
+                {
+                  "id": "cp-sapi-2",
+                  "detik_muncul": 25,
+                  "tipe_interaksi": "FLASHCARD_REVEAL",
+                  "judul_pertanyaan": "Minuman sehat apa yang dihasilkan oleh sapi perah untuk kita minum setiap pagi?",
+                  "ikon_stimulus": "milk",
+                  "payload_interaksi": {
+                    "jawaban_balik": "Susu Sapi Segar! Susu mengandung kalsium tinggi agar tulang dan gigi teman-teman tumbuh kuat."
+                  }
+                },
+                {
+                  "id": "cp-sapi-3",
+                  "detik_muncul": 40,
+                  "tipe_interaksi": "ACTION_PROMPT",
+                  "judul_pertanyaan": "Ayo kita tirukan suara sapi mengembik dengan kompak: \"Moooo... Moooo!\"",
+                  "ikon_stimulus": "action",
+                  "payload_interaksi": {
+                    "timer_detik": 6,
+                    "instruksi_tambahan": "Tirukan suara sapi bersama teman-teman satu kelas ya!"
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

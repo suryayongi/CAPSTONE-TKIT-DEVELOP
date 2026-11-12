@@ -1,0 +1,713 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* 6-Color Harmonious Sentra Palette (Identik Prototype) */
+    --madani-yellow: #FFC800;
+    --madani-yellow-hover: #FFD324;
+    --madani-yellow-lip: #D99B00;
+    --madani-yellow-tint: #FFF5D6;
+    --madani-yellow-text: #4B4B4B;
+
+    --madani-emerald: #10B981;
+    --madani-emerald-hover: #34D399;
+    --madani-emerald-lip: #059669;
+    --madani-emerald-tint: #D1FAE5;
+    --madani-emerald-text: #FFFFFF;
+
+    --madani-sky: #0EA5E9;
+    --madani-sky-hover: #38BDF8;
+    --madani-sky-lip: #0284C7;
+    --madani-sky-tint: #E0F2FE;
+    --madani-sky-text: #FFFFFF;
+
+    --madani-orange: #F97316;
+    --madani-orange-hover: #FB923C;
+    --madani-orange-lip: #C2410C;
+    --madani-orange-tint: #FFEDD5;
+    --madani-orange-text: #FFFFFF;
+
+    --madani-purple: #8B5CF6;
+    --madani-purple-hover: #A78BFA;
+    --madani-purple-lip: #6D28D9;
+    --madani-purple-tint: #EDE9FE;
+    --madani-purple-text: #FFFFFF;
+
+    --madani-ruby: #EF4444;
+    --madani-ruby-hover: #F87171;
+    --madani-ruby-lip: #B91C1C;
+    --madani-ruby-tint: #FEE2E2;
+    --madani-ruby-text: #FFFFFF;
+
+    /* Neutrals (Pure White Base with Swan #E5E5E5 & Polar #F7F7F7) */
+    --madani-canvas: #FFFFFF;
+    --madani-snow: #FFFFFF;
+    --madani-polar: #F7F7F7;
+    --madani-swan: #E5E5E5;
+    --madani-koala: #AFAFAF;
+    --madani-hare: #777777;
+    --madani-wolf: #4B4B4B;
+    --madani-eel: #4B4B4B;
+    --madani-black: #1E293B;
+
+    /* Radii */
+    --radius-card-outer: 28px;
+    --radius-banner-standalone: 28px;
+    --radius-inner-md: 12px;
+    --radius-inner-sm: 8px;
+    --radius-inner-xs: 6px;
+    --radius-md: 16px;
+    --radius-sm: 12px;
+    --radius-pill: 9999px;
+  }
+
+
+  /* Auto-Adjust Resilient Scaling untuk Layar Zoom & High-DPI */
+  html {
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+    box-sizing: border-box;
+    /* Skala dasar dinamis: beradaptasi mulus saat Chrome di-zoom >100% atau layar padat */
+    font-size: 16px;
+  }
+  *, *::before, *::after {
+    box-sizing: inherit;
+  }
+
+  /* Adaptasi otomatis saat browser di-zoom atau layar kompak (1281px - 1440px) */
+  @media screen and (max-width: 1440px) {
+    html {
+      font-size: 15px;
+    }
+  }
+
+  /* Adaptasi otomatis saat browser di-zoom 125%-150% pada 1080p atau laptop 1366px (1025px - 1280px) */
+  @media screen and (max-width: 1280px) {
+    html {
+      font-size: 14px;
+    }
+  }
+
+  /* Deteksi spesifik Windows DPI Scaling (125%-150%) / Chrome Zoom */
+  @media screen and (-webkit-min-device-pixel-ratio: 1.25) and (max-width: 1600px),
+         screen and (min-resolution: 120dpi) and (max-width: 1600px) {
+    html {
+      font-size: 14.5px;
+    }
+  }
+
+  body {
+    background-color: #FBF9F5;
+    color: #1C1917;
+    font-family: 'Plus Jakarta Sans', 'Nunito', -apple-system, BlinkMacSystemFont, sans-serif;
+    font-weight: 600;
+    margin: 0;
+    padding: 0;
+    overflow-x: clip;
+  }
+}
+
+/* Material Symbols Rounded (Identik Prototype Google Font) */
+.material-symbols-rounded {
+  font-family: 'Material Symbols Rounded';
+  font-weight: normal;
+  font-style: normal;
+  font-size: 24px;
+  line-height: 1;
+  letter-spacing: normal;
+  text-transform: none;
+  display: inline-block;
+  white-space: nowrap;
+  word-wrap: normal;
+  direction: ltr;
+  -webkit-font-feature-settings: 'liga';
+  -webkit-font-smoothing: antialiased;
+  font-variation-settings: 'FILL' 1, 'wght' 700, 'GRAD' 0, 'opsz' 24;
+  vertical-align: middle;
+}
+
+/* Typography Utility Classes */
+.font-duo-display,
+.font-kids-heading {
+  font-family: 'Fredoka', 'Nunito', sans-serif !important;
+  letter-spacing: 0.03em !important;
+}
+
+.font-duo-sans,
+.font-cms {
+  font-family: 'Nunito', -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+/* 1. 3D Tactile Buttons (.duo-btn) */
+.duo-btn {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  font-family: 'Nunito', sans-serif;
+  font-weight: 800;
+  font-size: 0.9375rem; /* 15px */
+  letter-spacing: 0.05em; /* 0.8px */
+  text-transform: uppercase;
+  border-radius: 16px;
+  padding: 0.75rem 1.25rem;
+  cursor: pointer;
+  user-select: none;
+  text-decoration: none;
+  transition: transform 0.08s cubic-bezier(0.34, 1.56, 0.64, 1),
+              box-shadow 0.08s ease,
+              background-color 0.15s ease,
+              border-color 0.15s ease;
+  white-space: nowrap;
+}
+
+/* Ukuran Konsisten Berbasis Tinggi (Tetap Border-Radius 16px & Letter-Spacing 0.05em) */
+.duo-btn-sm {
+  height: 36px;
+  padding: 0 0.875rem;
+  font-size: 0.75rem;
+  border-radius: 14px;
+}
+
+.duo-btn-md {
+  height: 44px;
+  padding: 0 1.25rem;
+  font-size: 0.875rem;
+  border-radius: 16px;
+}
+
+.duo-btn-lg {
+  height: 54px;
+  padding: 0 1.75rem;
+  font-size: 1rem;
+  border-radius: 16px;
+}
+
+/* Icon-Only Strict Square & Perfect Centering (Fix Gap Asimetris) */
+.duo-btn-icon-only {
+  padding: 0 !important;
+  justify-content: center !important;
+  align-items: center !important;
+  gap: 0 !important;
+}
+.duo-btn-sm.duo-btn-icon-only {
+  width: 36px !important;
+  min-width: 36px !important;
+}
+.duo-btn-md.duo-btn-icon-only {
+  width: 44px !important;
+  min-width: 44px !important;
+}
+.duo-btn-lg.duo-btn-icon-only {
+  width: 54px !important;
+  min-width: 54px !important;
+}
+
+/* Varian Warna 3D Tactile */
+.duo-btn-primary,
+.duo-btn-yellow {
+  background-color: var(--madani-yellow);
+  color: var(--madani-yellow-text);
+  border: 2px solid var(--madani-yellow);
+  box-shadow: 0 4px 0 0 var(--madani-yellow-lip);
+}
+.duo-btn-primary:hover,
+.duo-btn-yellow:hover {
+  background-color: var(--madani-yellow-hover);
+  border-color: var(--madani-yellow-hover);
+}
+
+.duo-btn-secondary,
+.duo-btn-emerald,
+.duo-btn-green {
+  background-color: var(--madani-emerald);
+  color: #FFFFFF;
+  border: 2px solid var(--madani-emerald);
+  box-shadow: 0 4px 0 0 var(--madani-emerald-lip);
+}
+.duo-btn-secondary:hover,
+.duo-btn-emerald:hover,
+.duo-btn-green:hover {
+  background-color: var(--madani-emerald-hover);
+  border-color: var(--madani-emerald-hover);
+}
+
+.duo-btn-blue,
+.duo-btn-sky {
+  background-color: var(--madani-sky);
+  color: #FFFFFF;
+  border: 2px solid var(--madani-sky);
+  box-shadow: 0 4px 0 0 var(--madani-sky-lip);
+}
+.duo-btn-blue:hover,
+.duo-btn-sky:hover {
+  background-color: var(--madani-sky-hover);
+  border-color: var(--madani-sky-hover);
+}
+
+.duo-btn-orange {
+  background-color: var(--madani-orange);
+  color: #FFFFFF;
+  border: 2px solid var(--madani-orange);
+  box-shadow: 0 4px 0 0 var(--madani-orange-lip);
+}
+.duo-btn-orange:hover {
+  background-color: var(--madani-orange-hover);
+  border-color: var(--madani-orange-hover);
+}
+
+.duo-btn-purple {
+  background-color: var(--madani-purple);
+  color: #FFFFFF;
+  border: 2px solid var(--madani-purple);
+  box-shadow: 0 4px 0 0 var(--madani-purple-lip);
+}
+.duo-btn-purple:hover {
+  background-color: var(--madani-purple-hover);
+  border-color: var(--madani-purple-hover);
+}
+
+.duo-btn-danger,
+.duo-btn-red {
+  background-color: var(--madani-ruby);
+  color: #FFFFFF;
+  border: 2px solid var(--madani-ruby);
+  box-shadow: 0 4px 0 0 var(--madani-ruby-lip);
+}
+.duo-btn-danger:hover,
+.duo-btn-red:hover {
+  background-color: var(--madani-ruby-hover);
+  border-color: var(--madani-ruby-hover);
+}
+
+.duo-btn-outline {
+  background-color: #FFFFFF;
+  color: #334155;
+  border: 1.5px solid #CBD5E1;
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.04);
+}
+.duo-btn-outline:hover {
+  background-color: #F8FAFC;
+  border-color: #94A3B8;
+  color: #0F172A;
+  box-shadow: 0 2px 4px 0 rgba(0, 0, 0, 0.06);
+}
+
+.duo-btn-outline-emerald {
+  background-color: #FFFFFF;
+  color: var(--madani-emerald);
+  border: 1.5px solid #A7F3D0;
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.04);
+}
+.duo-btn-outline-emerald:hover {
+  background-color: #ECFDF5;
+  border-color: var(--madani-emerald);
+  box-shadow: 0 2px 4px 0 rgba(0, 0, 0, 0.06);
+}
+
+.duo-btn-outline-blue {
+  background-color: #FFFFFF;
+  color: var(--madani-sky);
+  border: 1.5px solid #BAE6FD;
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.04);
+}
+.duo-btn-outline-blue:hover {
+  background-color: #F0F9FF;
+  border-color: var(--madani-sky);
+  box-shadow: 0 2px 4px 0 rgba(0, 0, 0, 0.06);
+}
+
+.duo-btn-white {
+  background-color: #FFFFFF;
+  color: #0284C7;
+  border: 2px solid #FFFFFF;
+  box-shadow: 0 4px 0 0 #BAE6FD;
+}
+.duo-btn-white:hover {
+  background-color: #F8FAFC;
+  border-color: #F8FAFC;
+  box-shadow: 0 4px 0 0 #7DD3FC;
+}
+
+.duo-btn-theme-white {
+  background-color: #FFFFFF !important;
+  color: var(--btn-theme-color, #0284C7) !important;
+  border: 2px solid #FFFFFF !important;
+  box-shadow: 0 4px 0 0 var(--btn-theme-lip, #BAE6FD) !important;
+}
+.duo-btn-theme-white:hover {
+  background-color: #F8FAFC !important;
+  border-color: #F8FAFC !important;
+}
+
+.duo-btn:active:not(:disabled) {
+  transform: translateY(4px);
+  box-shadow: 0 0 0 0 transparent !important;
+}
+
+.duo-btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+  transform: none !important;
+}
+
+/* 2. Content Card (.duo-card) - Elegant Hairline & Subtle Soft Shadow */
+.duo-card {
+  background-color: #FFFFFF;
+  border: 1px solid #E2E8F0;
+  border-radius: 20px;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.04), 0 1px 2px -1px rgba(0, 0, 0, 0.03);
+}
+
+/* 3. Unit Header Banner (.duo-unit-banner) — Flat Tanpa 3D Tactile */
+.duo-unit-banner {
+  border-radius: var(--radius-banner-standalone); /* 28px */
+  padding: 1.25rem 1.5rem;
+  border: none !important;
+  box-shadow: none !important;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Nested Border Radius Rules */
+.nested-radius-banner {
+  border-radius: var(--radius-inner-md); /* 12px */
+}
+
+.nested-radius-thumb {
+  border-radius: var(--radius-inner-md); /* 12px */
+}
+
+.nested-radius-badge {
+  border-radius: var(--radius-inner-xs); /* 6px */
+}
+
+.nested-radius-icon {
+  border-radius: var(--radius-inner-sm); /* 8px */
+}
+
+/* 4. Refined Tile (.duo-tile) for Cards & Selection - Clean Craft */
+.duo-tile {
+  background-color: #FFFFFF;
+  border: 1px solid #E2E8F0;
+  border-radius: 20px;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.04), 0 1px 2px -1px rgba(0, 0, 0, 0.03);
+  transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
+  user-select: none;
+}
+.duo-tile:hover {
+  transform: translateY(-2px);
+  border-color: #CBD5E1;
+  box-shadow: 0 8px 20px -4px rgba(0, 0, 0, 0.06), 0 3px 6px -3px rgba(0, 0, 0, 0.04);
+}
+.duo-tile:active {
+  transform: translateY(0);
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.04);
+}
+.duo-tile-selected {
+  background-color: var(--madani-yellow-tint) !important;
+  border-color: var(--madani-yellow) !important;
+  box-shadow: 0 2px 0 0 var(--madani-yellow) !important;
+  color: var(--madani-yellow-text) !important;
+}
+.duo-tile-correct {
+  background-color: var(--madani-emerald-tint) !important;
+  border-color: var(--madani-emerald) !important;
+  box-shadow: 0 2px 0 0 var(--madani-emerald-lip) !important;
+  color: var(--madani-emerald-lip) !important;
+}
+.duo-tile-wrong {
+  background-color: var(--madani-ruby-tint) !important;
+  border-color: var(--madani-ruby) !important;
+  box-shadow: 0 2px 0 0 var(--madani-ruby-lip) !important;
+  color: var(--madani-ruby-lip) !important;
+}
+
+/* 5. Navigation Pills (.duo-nav-pill) */
+.duo-nav-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.625rem;
+  padding: 0.625rem 1rem;
+  border-radius: var(--radius-sm);
+  border: 2px solid transparent;
+  font-family: 'Nunito', sans-serif;
+  font-size: 0.875rem;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--madani-wolf);
+  transition: all 0.15s ease;
+  cursor: pointer;
+  text-decoration: none;
+}
+.duo-nav-pill:hover {
+  background-color: var(--madani-polar);
+  color: var(--madani-eel);
+}
+.duo-nav-pill.active {
+  background-color: var(--madani-yellow-tint);
+  border-color: var(--madani-yellow);
+  color: #B45309;
+}
+
+/* 6. Form Inputs (.duo-input) */
+.duo-input {
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+  box-sizing: border-box;
+  background-color: var(--madani-polar); /* #F7F7F7 */
+  border: 2px solid var(--madani-swan);
+  border-radius: var(--radius-md); /* 16px */
+  padding: 0.75rem 1rem;
+  font-family: 'Nunito', sans-serif;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--madani-eel);
+  transition: border-color 0.15s ease, background-color 0.15s ease, box-shadow 0.15s ease;
+}
+.duo-input:focus {
+  outline: none;
+  background-color: #FFFFFF;
+  border-color: var(--madani-yellow);
+  box-shadow: 0 0 0 3px rgba(255, 200, 0, 0.25);
+}
+.duo-input::placeholder {
+  color: var(--madani-hare);
+  font-weight: 600;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  white-space: nowrap;
+}
+.duo-input-error {
+  border-color: var(--madani-ruby) !important;
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.2) !important;
+}
+
+/* 7. Speech Bubble (.duo-speech-bubble) */
+.duo-speech-bubble {
+  position: relative;
+  background: #FFFFFF;
+  border: 2px solid var(--madani-swan);
+  border-radius: 1.25rem;
+  padding: 0.5rem 0.875rem;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+  font-family: 'Fredoka', 'Nunito', sans-serif;
+}
+.duo-speech-bubble::after {
+  content: '';
+  position: absolute;
+  bottom: -6px;
+  right: 24px;
+  width: 12px;
+  height: 12px;
+  background: #FFFFFF;
+  border-right: 2px solid var(--madani-swan);
+  border-bottom: 2px solid var(--madani-swan);
+  transform: rotate(45deg);
+}
+
+/* 8. Timeline Progress Track & Cue Markers */
+.timeline-track {
+  position: relative;
+  height: 10px;
+  background-color: #E2E8F0;
+  border-radius: 9999px;
+  cursor: pointer;
+  border: 1px solid #CBD5E1;
+}
+.timeline-fill {
+  height: 100%;
+  background: var(--madani-yellow);
+  border-radius: 9999px;
+  transition: width 0.15s linear;
+  position: relative;
+}
+.cue-marker,
+.timeline-marker {
+  position: absolute;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  border: 2px solid #FFFFFF;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Fredoka', 'Nunito', sans-serif;
+  font-weight: 700;
+  font-size: 11px;
+  cursor: pointer;
+  z-index: 20;
+  transition: transform 0.2s ease, background-color 0.2s ease, box-shadow 0.2s ease;
+  user-select: none;
+}
+.cue-marker:hover,
+.timeline-marker:hover {
+  transform: translate(-50%, -50%) scale(1.2);
+  z-index: 30;
+}
+.cue-marker.pending,
+.timeline-marker-pending {
+  background-color: var(--madani-yellow);
+  color: var(--madani-yellow-text);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+}
+.cue-marker.completed,
+.timeline-marker-answered {
+  background-color: var(--madani-emerald);
+  color: #FFFFFF;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+}
+.cue-marker.active-editing,
+.timeline-marker.active-editing {
+  background-color: #8B5CF6 !important;
+  color: #FFFFFF !important;
+  border-color: #FFFFFF !important;
+  box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.35), 0 2px 6px rgba(0, 0, 0, 0.2) !important;
+  transform: translate(-50%, -50%) scale(1.25) !important;
+  z-index: 40 !important;
+  font-weight: 800 !important;
+}
+
+/* Vector Badge Container */
+.duo-vector-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  user-select: none;
+  line-height: 1;
+}
+.duo-vector-badge > svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+
+/* 9. Animasi Maskot Burung Hantu (Side-to-Side Waddle & Wave ala Duolingo) */
+@keyframes mascotWaddle {
+  0%, 100% {
+    transform: translateX(0) translateY(0) rotate(0deg);
+  }
+  15% {
+    transform: translateX(-16px) translateY(-10px) rotate(-8deg);
+  }
+  30% {
+    transform: translateX(0) translateY(0) rotate(0deg);
+  }
+  45% {
+    transform: translateX(16px) translateY(-10px) rotate(8deg);
+  }
+  60% {
+    transform: translateX(0) translateY(0) rotate(0deg);
+  }
+  75% {
+    transform: translateX(-8px) translateY(-5px) rotate(-4deg);
+  }
+  88% {
+    transform: translateX(8px) translateY(-5px) rotate(4deg);
+  }
+}
+
+@keyframes bubbleFloat {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-8px);
+  }
+}
+
+.animate-mascot-waddle {
+  animation: mascotWaddle 3s cubic-bezier(0.45, 0.05, 0.55, 0.95) infinite;
+  transform-origin: bottom center;
+  will-change: transform;
+}
+
+.animate-mascot-waddle:hover {
+  animation-duration: 1.5s;
+}
+
+.animate-bubble-float {
+  animation: bubbleFloat 2.4s ease-in-out infinite;
+}
+
+
+
+
+.animate-theme-icon {
+  animation: themeIconWaddle 2.8s cubic-bezier(0.45, 0.05, 0.55, 0.95) infinite;
+  transform-origin: bottom center;
+  will-change: transform;
+}
+
+.group:hover .animate-theme-icon {
+  animation: themeIconWaddle 1.2s cubic-bezier(0.45, 0.05, 0.55, 0.95) infinite;
+}
+
+
+/* 11. Animasi Tulisan Header & Judul Banner (Eye-Catching Float & Sway) */
+@keyframes headerTextWave {
+  0%, 100% {
+    transform: translateY(0) rotate(0deg);
+  }
+  25% {
+    transform: translateY(-5px) rotate(-0.75deg);
+  }
+  75% {
+    transform: translateY(3px) rotate(0.75deg);
+  }
+}
+
+.animate-header-text {
+  animation: headerTextWave 3.6s ease-in-out infinite;
+  display: inline-block;
+  will-change: transform;
+  transform-origin: left center;
+}
+
+.animate-header-text:hover {
+  transform: scale(1.025) translateY(-3px);
+  transition: transform 0.2s ease;
+}
+
+/* 10. Animasi Ikon Karakter & Emotikon (Goyang Kanan-Kiri Otomatis & Hover Playful untuk Seluruh Ikon) */
+@keyframes duoIconWaddle {
+  0%, 100% {
+    transform: translateX(0) translateY(0) rotate(0deg);
+  }
+  20% {
+    transform: translateX(-7%) translateY(-4%) rotate(-5deg);
+  }
+  40% {
+    transform: translateX(0) translateY(0) rotate(0deg);
+  }
+  60% {
+    transform: translateX(7%) translateY(-4%) rotate(5deg);
+  }
+  80% {
+    transform: translateX(0) translateY(0) rotate(0deg);
+  }
+}
+
+.animate-theme-icon,
+.duo-icon-animated {
+  animation: duoIconWaddle 2.8s cubic-bezier(0.45, 0.05, 0.55, 0.95) infinite;
+  transform-origin: bottom center;
+  will-change: transform;
+}
+
+.animate-theme-icon:hover,
+.duo-icon-animated:hover,
+.group:hover .animate-theme-icon {
+  animation: duoIconWaddle 1.2s cubic-bezier(0.45, 0.05, 0.55, 0.95) infinite;
+  transform: scale(1.12);
+  transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
