@@ -91,7 +91,20 @@ export default async function handler(req, res) {
         const data = await loadFullData();
         return sendJson(res, 200, {
           success: true,
-          message: 'Seluruh materi & tampilan berhasil dikembalikan ke pengaturan awal.',
+          message: 'Seluruh materi berhasil dikosongkan dan pengaturan dikembalikan ke awal.',
+          data
+        });
+      }
+
+      if (action === 'clearAllThemes') {
+        await sql`DELETE FROM cue_points`;
+        await sql`DELETE FROM videos`;
+        await sql`DELETE FROM subthemes`;
+        await sql`DELETE FROM themes`;
+        const data = await loadFullData();
+        return sendJson(res, 200, {
+          success: true,
+          message: 'Seluruh tema, subtema, dan video berhasil dikosongkan.',
           data
         });
       }

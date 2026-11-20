@@ -409,6 +409,17 @@ export const curriculumService = {
     return { success: true, message: 'Tema berhasil dihapus!', data: { id: themeId } };
   },
 
+  async clearAllThemes() {
+    const mutated = await postCurriculumMutation('clearAllThemes', {});
+    if (mutated.handled) return mutated.result;
+
+    const cur = getLocalData();
+    cur.themes = [];
+    cur.updated_at = new Date().toISOString();
+    storage.set(storage.CURRICULUM_KEY, cur);
+    return { success: true, message: 'Seluruh tema, subtema, dan video berhasil dikosongkan!', data: [] };
+  },
+
   // ==========================================
   // LEVEL 2: SUB TEMA (SUBTHEME GROUPS)
   // ==========================================

@@ -231,7 +231,8 @@ export const ensureSchemaAndSeed = async (forceReset = false) => {
     }
 
     const existingConfig = await sql`SELECT id FROM site_config WHERE id = 'default' LIMIT 1`;
-    if (forceReset || existingConfig.length === 0) {
+    const isFirstEverInit = existingConfig.length === 0;
+    if (forceReset || isFirstEverInit) {
       const defaultSiteConfig = loadDefaultSiteConfig();
       await sql`
         INSERT INTO site_config (id, config_json, updated_at)
@@ -241,10 +242,9 @@ export const ensureSchemaAndSeed = async (forceReset = false) => {
       `;
     }
 
-    const existingThemes = await sql`SELECT COUNT(*)::int AS cnt FROM themes`;
-    const themeCount = existingThemes[0]?.cnt || 0;
-
-    if (forceReset || themeCount === 0) {
+    // Seed tema hanya saat inisialisasi DB pertama kali atau reset eksplisit;
+    // jangan isi ulang otomatis jika guru sengaja mengosongkan semua tema.
+    if (forceReset || isFirstEverInit) {
       if (forceReset) {
         await sql`DELETE FROM cue_points`;
         await sql`DELETE FROM videos`;

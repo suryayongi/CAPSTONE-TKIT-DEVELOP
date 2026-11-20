@@ -308,7 +308,7 @@ export const DashboardPage = () => {
               size="sm"
               variant="outline"
               onClick={() => setIsResetConfirmOpen(true)}
-              title="Kembalikan data ke materi bawaan contoh"
+              title="Kosongkan seluruh materi & kembalikan pengaturan tampilan ke awal"
               icon={<MaterialIcon name="restart_alt" className="text-base text-amber-600" />}
             />
           </div>
@@ -355,7 +355,7 @@ export const DashboardPage = () => {
                 Rekap Aktivitas Belajar PJJ ({stats.totalPjjVideos || 0} Materi Aktif)
               </h2>
               <p className="text-xs sm:text-sm text-stone-600 mt-1 leading-relaxed">
-                Lihat catatan nama, kelas (TK A / TK B), serta apresiasi simbol <strong>Good</strong> dan <strong>Excellent</strong> khusus guru.
+                Lihat catatan nama, kelas, serta apresiasi simbol <strong>Bintang Emas (Excellent)</strong> dan <strong>Jempol Ceria (Good)</strong> khusus guru.
               </p>
             </div>
           </div>
@@ -385,9 +385,9 @@ export const DashboardPage = () => {
         isOpen={isResetConfirmOpen}
         onClose={() => setIsResetConfirmOpen(false)}
         onConfirm={handleConfirmReset}
-        title="Kembalikan ke Materi Awal?"
-        message="Seluruh tema, subtema, video, dan pertanyaan kuis yang telah ditambahkan akan digantikan dengan data contoh awal TKIT Al Madani. Lanjutkan?"
-        confirmText="Ya, Kembalikan Materi Awal"
+        title="Kosongkan Materi & Reset Tampilan?"
+        message="Seluruh tema, subtema, video, dan kuis saat ini akan dikosongkan dan teks sambutan dikembalikan ke pengaturan awal. Lanjutkan?"
+        confirmText="Ya, Kosongkan & Reset"
         cancelText="Batal"
         variant="danger"
         icon="restart_alt"

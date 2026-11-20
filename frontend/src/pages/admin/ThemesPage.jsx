@@ -41,6 +41,7 @@ export const ThemesPage = () => {
 
   const [isSaving, setIsSaving] = useState(false);
   const [deleteTargetThemeId, setDeleteTargetThemeId] = useState(null);
+  const [isClearAllOpen, setIsClearAllOpen] = useState(false);
 
   const { data: themesData, isLoading } = useQuery({
     queryKey: ['themes', false],
@@ -135,6 +136,17 @@ export const ThemesPage = () => {
     setDeleteTargetThemeId(null);
   };
 
+  const handleClearAllThemes = async () => {
+    const res = await curriculumService.clearAllThemes();
+    if (res.success) {
+      queryClient.invalidateQueries();
+      showToast(res.message || 'Seluruh tema berhasil dikosongkan.', 'success');
+    } else {
+      showToast(res.message || 'Gagal mengosongkan materi.', 'error');
+    }
+    setIsClearAllOpen(false);
+  };
+
   return (
     <AdminLayout>
       {/* Header Halaman */}
@@ -150,15 +162,28 @@ export const ThemesPage = () => {
             Buat atau ubah tema utama, lalu ketuk <b>Kelola Materi</b> pada kartu tema untuk mengatur subtema dan video.
           </p>
         </div>
-        <Button
-          size="md"
-          variant="primary"
-          onClick={handleOpenAdd}
-          icon={<MaterialIcon name="add" className="text-xl shrink-0" />}
-          className="w-full sm:w-auto shrink-0"
-        >
-          Tambah Tema Baru
-        </Button>
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 shrink-0 w-full sm:w-auto">
+          {themes.length > 0 && (
+            <Button
+              size="md"
+              variant="outline"
+              onClick={() => setIsClearAllOpen(true)}
+              icon={<MaterialIcon name="delete_sweep" className="text-xl text-rose-600 shrink-0" />}
+              className="w-full sm:w-auto shrink-0"
+            >
+              Kosongkan Semua
+            </Button>
+          )}
+          <Button
+            size="md"
+            variant="primary"
+            onClick={handleOpenAdd}
+            icon={<MaterialIcon name="add" className="text-xl shrink-0" />}
+            className="w-full sm:w-auto shrink-0"
+          >
+            Tambah Tema Baru
+          </Button>
+        </div>
       </div>
 
       {/* Grid Tema */}
@@ -447,6 +472,19 @@ export const ThemesPage = () => {
         cancelText="Batal"
         variant="danger"
         icon="delete"
+      />
+
+      {/* Confirm Clear All Themes Modal */}
+      <ConfirmModal
+        isOpen={isClearAllOpen}
+        onClose={() => setIsClearAllOpen(false)}
+        onConfirm={handleClearAllThemes}
+        title="Kosongkan Seluruh Materi?"
+        message="Semua tema, subtema, video, dan kuis saat ini akan dihapus agar Anda bisa mengisi materi baru dari awal. Lanjutkan?"
+        confirmText="Ya, Kosongkan Semua"
+        cancelText="Batal"
+        variant="danger"
+        icon="delete_sweep"
       />
     </AdminLayout>
   );
