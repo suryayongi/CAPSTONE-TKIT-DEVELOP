@@ -1,4 +1,11 @@
 {
+  "functions": {
+    "api/health.js": { "includeFiles": "src/data/*.json" },
+    "api/curriculum.js": { "includeFiles": "src/data/*.json" },
+    "api/auth.js": { "includeFiles": "src/data/*.json" },
+    "api/pjj.js": { "includeFiles": "src/data/*.json" },
+    "api/users.js": { "includeFiles": "src/data/*.json" }
+  },
   "rewrites": [
     {
       "source": "/((?!api/).*)",

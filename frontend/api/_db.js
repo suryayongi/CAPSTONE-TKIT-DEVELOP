@@ -1,6 +1,10 @@
 import fs from 'node:fs';
+import path from 'node:path';
+import { createRequire } from 'node:module';
 import { neon } from '@neondatabase/serverless';
 import { getStarterUsersSeed, hashPassword, normalizeRole } from './_auth.js';
+
+const require = createRequire(import.meta.url);
 
 export const toPublicUser = (row) => {
   if (!row) return null;
@@ -17,9 +21,40 @@ export const toPublicUser = (row) => {
   };
 };
 
-const readJsonSeed = (relativePath) => {
-  const fileUrl = new URL(relativePath, import.meta.url);
-  return JSON.parse(fs.readFileSync(fileUrl, 'utf8'));
+const loadDefaultSiteConfig = () => {
+  try {
+    return structuredClone(require('../src/data/defaultSiteConfig.json'));
+  } catch {
+    const candidates = [
+      new URL('../src/data/defaultSiteConfig.json', import.meta.url),
+      path.join(process.cwd(), 'src', 'data', 'defaultSiteConfig.json'),
+      path.join(process.cwd(), 'frontend', 'src', 'data', 'defaultSiteConfig.json')
+    ];
+    for (const p of candidates) {
+      if (fs.existsSync(p)) {
+        return JSON.parse(fs.readFileSync(p, 'utf8'));
+      }
+    }
+    throw new Error('Tidak dapat menemukan seed defaultSiteConfig.json');
+  }
+};
+
+const loadDefaultCurriculum = () => {
+  try {
+    return structuredClone(require('../src/data/defaultCurriculum.json'));
+  } catch {
+    const candidates = [
+      new URL('../src/data/defaultCurriculum.json', import.meta.url),
+      path.join(process.cwd(), 'src', 'data', 'defaultCurriculum.json'),
+      path.join(process.cwd(), 'frontend', 'src', 'data', 'defaultCurriculum.json')
+    ];
+    for (const p of candidates) {
+      if (fs.existsSync(p)) {
+        return JSON.parse(fs.readFileSync(p, 'utf8'));
+      }
+    }
+    throw new Error('Tidak dapat menemukan seed defaultCurriculum.json');
+  }
 };
 
 export const getDatabaseUrl = () => {
@@ -197,7 +232,7 @@ export const ensureSchemaAndSeed = async (forceReset = false) => {
 
     const existingConfig = await sql`SELECT id FROM site_config WHERE id = 'default' LIMIT 1`;
     if (forceReset || existingConfig.length === 0) {
-      const defaultSiteConfig = readJsonSeed('../src/data/defaultSiteConfig.json');
+      const defaultSiteConfig = loadDefaultSiteConfig();
       await sql`
         INSERT INTO site_config (id, config_json, updated_at)
         VALUES ('default', ${JSON.stringify(defaultSiteConfig)}::jsonb, NOW())
@@ -217,7 +252,7 @@ export const ensureSchemaAndSeed = async (forceReset = false) => {
         await sql`DELETE FROM themes`;
       }
 
-      const defaultCurriculum = readJsonSeed('../src/data/defaultCurriculum.json');
+      const defaultCurriculum = loadDefaultCurriculum();
       await seedCurriculumIntoDb(sql, defaultCurriculum);
     }
   };
@@ -388,7 +423,7 @@ export const loadFullData = async () => {
     sql`SELECT * FROM cue_points ORDER BY detik_muncul ASC, created_at ASC`
   ]);
 
-  const defaultSiteConfig = readJsonSeed('../src/data/defaultSiteConfig.json');
+  const defaultSiteConfig = loadDefaultSiteConfig();
   const siteConfig = {
     ...defaultSiteConfig,
     ...(cfgRows[0]?.config_json || {})
