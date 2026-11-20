@@ -7,6 +7,7 @@ import React, {
   forwardRef,
   useId
 } from 'react';
+import { createPortal } from 'react-dom';
 import { MaterialIcon } from '../utils/icons';
 import { Button } from './Button';
 import { formatSecondsToMMSS } from '../utils/formatters';
@@ -31,6 +32,7 @@ export const VideoPlayer = forwardRef(({
   onVideoEnded,
   onError,
   overlayChildren = null,
+  hasActiveOverlay = false,
   studioDrawerContent = null,
   isStudioDrawerOpen = false,
   onToggleStudioDrawer = null,
@@ -343,56 +345,59 @@ export const VideoPlayer = forwardRef(({
   const showControls = isStudioMode ? true : areControlsVisible;
 
   return (
-    <div
-      ref={containerRef}
-      onMouseMove={resetControlsTimeout}
-      onTouchStart={resetControlsTimeout}
-      className={`relative overflow-hidden bg-black select-none ${
-        isFullscreen
-          ? 'fixed inset-0 w-screen h-screen z-50 !rounded-none !border-0'
-          : 'duo-card flex flex-col border-2 border-[#E5E5E5] isolate z-10'
-      }`}
-    >
-      {/* Area Layar Video Player */}
+    <>
       <div
-        className={`relative w-full bg-black flex items-center justify-center overflow-hidden group ${
-          isFullscreen ? 'w-full h-full' : 'aspect-video'
+        ref={containerRef}
+        onMouseMove={resetControlsTimeout}
+        onTouchStart={resetControlsTimeout}
+        className={`relative overflow-hidden bg-black select-none ${
+          isFullscreen
+            ? 'fixed inset-0 w-screen h-screen z-50 !rounded-none !border-0'
+            : 'duo-card flex flex-col border-2 border-[#E5E5E5] isolate z-10'
         }`}
       >
-        <div ref={mountWrapperRef} className="w-full h-full pointer-events-none" />
-
-        {/* Klik layar video untuk Play/Pause */}
+        {/* Area Layar Video Player */}
         <div
-          onClick={togglePlayPause}
-          className="absolute inset-0 cursor-pointer z-10"
-          title={isPlaying ? 'Klik untuk jeda video' : 'Klik untuk putar video'}
-        />
+          className={`relative w-full bg-black flex items-center justify-center overflow-hidden group ${
+            isFullscreen ? 'w-full h-full' : 'aspect-video'
+          }`}
+        >
+          <div
+            ref={mountWrapperRef}
+            className={`w-full h-full pointer-events-none transition-opacity duration-150 ${
+              hasActiveOverlay || activeCuePoint ? 'invisible opacity-0' : 'visible opacity-100'
+            }`}
+          />
 
-        {/* Big Play Overlay Button saat video dijeda / belum diputar */}
-        {!isPlaying && isPlayerReady && !overlayChildren && !activeCuePoint && (
+          {/* Klik layar video untuk Play/Pause */}
           <div
             onClick={togglePlayPause}
-            className="absolute inset-0 z-20 flex items-center justify-center bg-black/40 backdrop-blur-[2px] transition-opacity cursor-pointer"
-          >
-            <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-[#FFC800] border-4 border-white shadow-xl flex items-center justify-center text-[#1E293B] transition-transform hover:scale-105 active:scale-95">
-              <MaterialIcon name="play_arrow" className="text-4xl sm:text-5xl translate-x-0.5" />
+            className="absolute inset-0 cursor-pointer z-10"
+            title={isPlaying ? 'Klik untuk jeda video' : 'Klik untuk putar video'}
+          />
+
+          {/* Big Play Overlay Button saat video dijeda / belum diputar */}
+          {!isPlaying && isPlayerReady && !hasActiveOverlay && !activeCuePoint && (
+            <div
+              onClick={togglePlayPause}
+              className="absolute inset-0 z-20 flex items-center justify-center bg-black/40 backdrop-blur-[2px] transition-opacity cursor-pointer"
+            >
+              <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-[#FFC800] border-4 border-white shadow-xl flex items-center justify-center text-[#1E293B] transition-transform hover:scale-105 active:scale-95">
+                <MaterialIcon name="play_arrow" className="text-4xl sm:text-5xl translate-x-0.5" />
+              </div>
             </div>
-          </div>
-        )}
+          )}
 
-        {hasError && (
-          <div className="absolute inset-0 bg-slate-900/90 text-white p-6 flex flex-col items-center justify-center text-center z-40">
-            <MaterialIcon name="error" className="text-5xl text-rose-500 mb-2" />
-            <h4 className="font-duo-display text-xl font-bold">Video Tidak Dapat Dimuat</h4>
-            <p className="text-sm text-slate-300 max-w-md mt-1">
-              Periksa koneksi internet Anda atau pastikan tautan video YouTube sudah tepat.
-            </p>
-          </div>
-        )}
-
-        {/* Overlay Kuis & Pratinjau dirender di atas area video */}
-        {overlayChildren}
-      </div>
+          {hasError && (
+            <div className="absolute inset-0 bg-slate-900/90 text-white p-6 flex flex-col items-center justify-center text-center z-40">
+              <MaterialIcon name="error" className="text-5xl text-rose-500 mb-2" />
+              <h4 className="font-duo-display text-xl font-bold">Video Tidak Dapat Dimuat</h4>
+              <p className="text-sm text-slate-300 max-w-md mt-1">
+                Periksa koneksi internet Anda atau pastikan tautan video YouTube sudah tepat.
+              </p>
+            </div>
+          )}
+        </div>
 
       {/* Control Bar: Floating YouTube-Style Vignette saat Fullscreen / Clean Card Bar saat Standar */}
       <div
@@ -507,10 +512,10 @@ export const VideoPlayer = forwardRef(({
           </div>
         )}
 
-        {/* 1-Row Streamlined Navigation Bar */}
-        <div className="flex flex-wrap items-center justify-between gap-2.5">
+        {/* 1-Row Desktop / 2-Row Clean Mobile Navigation Bar */}
+        <div className="flex flex-wrap items-center justify-between gap-2 sm:gap-2.5">
           {/* Navigasi Kiri: Play/Pause, Mundur 10s, Maju 10s, Suara & Indikator Waktu */}
-          <div className="flex items-center gap-1 sm:gap-1.5">
+          <div className="flex items-center gap-1 sm:gap-1.5 min-w-0">
             <button
               type="button"
               onClick={togglePlayPause}
@@ -590,8 +595,8 @@ export const VideoPlayer = forwardRef(({
             </div>
           </div>
 
-          {/* Navigasi Kanan: Tombol Studio & Fullscreen */}
-          <div className="flex flex-wrap items-center gap-2 ml-auto">
+          {/* Navigasi Kanan: Tombol Studio & Fullscreen (Wrap rapi di HP) */}
+          <div className="flex flex-wrap items-center gap-1.5 sm:gap-2 ml-auto max-w-full">
             {isStudioMode && (
               <>
                 {isFullscreen ? (
@@ -694,7 +699,22 @@ export const VideoPlayer = forwardRef(({
           </div>
         </aside>
       )}
-    </div>
+
+        {/* Saat Fullscreen API aktif, overlay harus berada di dalam containerRef agar tetap terlihat */}
+        {isFullscreen && overlayChildren && (
+          <div className="relative z-[100]">{overlayChildren}</div>
+        )}
+      </div>
+
+      {/* Saat non-fullscreen, render overlay via Portal ke document.body agar bebas dari kliping overflow-hidden & stacking context z-10 */}
+      {!isFullscreen &&
+        overlayChildren &&
+        typeof document !== 'undefined' &&
+        createPortal(
+          <div className="relative z-[9999]">{overlayChildren}</div>,
+          document.body
+        )}
+    </>
   );
 });
 

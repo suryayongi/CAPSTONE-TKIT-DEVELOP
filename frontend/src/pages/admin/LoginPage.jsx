@@ -1,27 +1,36 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { PublicHeader, PublicFooter, Card, Input, Button } from '../../components';
 import { Icon, MaterialIcon } from '../../utils/icons';
 import { authService } from '../../services/authService';
 
+const resolvePostLoginRoute = (user, restrictedFrom) => {
+  const defaultRoute = authService.getHomeRouteForRole(user?.role);
+  if (!restrictedFrom || restrictedFrom === '/admin' || restrictedFrom === '/admin/login') {
+    return defaultRoute;
+  }
+  if (restrictedFrom.startsWith('/admin/akun-guru') && user?.role !== 'SUPER_ADMIN') {
+    return '/admin/dashboard';
+  }
+  return restrictedFrom;
+};
+
 export const LoginPage = () => {
   const navigate = useNavigate();
+  const location = useLocation();
+  const restrictedFrom = location.state?.restrictedFrom || '';
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
-    if (authService.isAuthenticated()) {
-      navigate('/admin/dashboard', { replace: true });
+    const existingUser = authService.getCurrentUser();
+    if (existingUser) {
+      navigate(resolvePostLoginRoute(existingUser, restrictedFrom), { replace: true });
     }
-  }, [navigate]);
-
-  const handleFillDemo = () => {
-    setUsername('guru');
-    setPassword('madani123');
-    setErrorMessage('');
-  };
+  }, [navigate, restrictedFrom]);
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -32,8 +41,8 @@ export const LoginPage = () => {
       const res = await authService.login(username, password);
       setIsLoading(false);
 
-      if (res.success) {
-        navigate('/admin/dashboard');
+      if (res.success && res.data) {
+        navigate(resolvePostLoginRoute(res.data, restrictedFrom), { replace: true });
       } else {
         setErrorMessage(res.message || 'Username atau kata sandi tidak cocok.');
       }
@@ -44,11 +53,11 @@ export const LoginPage = () => {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-white">
+    <div className="min-h-screen flex flex-col bg-[#FBF9F5]">
       <PublicHeader />
 
       <main className="flex-1 flex items-center justify-center p-4 sm:p-8">
-        <Card className="max-w-md w-full p-6 sm:p-8 animate-pop-in">
+        <Card className="max-w-md w-full p-6 sm:p-8">
           {/* Header Card */}
           <div className="text-center mb-6">
             <div className="w-20 h-20 rounded-2xl bg-sky-50 border border-sky-200/80 flex items-center justify-center mx-auto mb-3 shadow-xs">
@@ -57,34 +66,34 @@ export const LoginPage = () => {
             <h1 className="font-duo-display text-2xl sm:text-3xl font-bold text-slate-800">
               Masuk Ruang Guru
             </h1>
-            <p className="text-sm font-semibold text-slate-500 mt-1">
-              Kelola Tema, Sub Tema, Video Pembelajaran, dan Pertanyaan Kuis Interaktif
+            <p className="text-sm font-medium text-slate-600 mt-1">
+              Masuk dengan akun guru masing-masing atau akun Super Admin TKIT Al Madani
             </p>
           </div>
 
-          {/* Kotak Pintasan Demo 1-Klik */}
-          <div className="p-4 rounded-xl bg-amber-50/80 border border-amber-200/80 mb-5 flex items-center justify-between gap-3">
-            <div className="text-xs font-semibold text-slate-700">
-              <span className="font-bold text-amber-800 block mb-0.5">
-                Akun Contoh Guru:
-              </span>
-              Username: <code className="bg-white/90 border border-amber-200/60 px-1.5 py-0.5 rounded font-mono text-slate-800">guru</code> • Sandi: <code className="bg-white/90 border border-amber-200/60 px-1.5 py-0.5 rounded font-mono text-slate-800">madani123</code>
-            </div>
-            <Button
-              type="button"
-              size="sm"
-              variant="secondary"
-              onClick={handleFillDemo}
-              icon={<MaterialIcon name="bolt" className="text-base" />}
-              className="shrink-0"
+          {/* Pemberitahuan Akses Khusus Guru / Super Admin */}
+          {restrictedFrom && (
+            <div
+              role="status"
+              className="p-3.5 rounded-xl bg-sky-50 border border-sky-200 text-sky-900 text-xs font-semibold mb-4 flex items-start gap-2.5"
             >
-              Isi Otomatis
-            </Button>
-          </div>
+              <MaterialIcon name="lock" className="text-base text-sky-700 shrink-0 mt-0.5" />
+              <span>
+                {restrictedFrom.includes('rekap-pjj')
+                  ? 'Halaman Rekap Belajar PJJ hanya dapat dibuka oleh Guru. Silakan masuk terlebih dahulu.'
+                  : restrictedFrom.includes('akun-guru')
+                  ? 'Halaman Pengelolaan Akun Guru hanya dapat dibuka oleh Super Admin Sekolah.'
+                  : 'Halaman Studio Guru hanya dapat dibuka oleh Guru terautentikasi. Silakan masuk terlebih dahulu.'}
+              </span>
+            </div>
+          )}
 
           {/* Error Message Box */}
           {errorMessage && (
-            <div className="p-3.5 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-xs font-bold mb-4 flex items-center gap-2">
+            <div
+              role="alert"
+              className="p-3.5 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-xs font-bold mb-4 flex items-center gap-2"
+            >
               <MaterialIcon name="error" className="text-base shrink-0" />
               <span>{errorMessage}</span>
             </div>
@@ -93,23 +102,52 @@ export const LoginPage = () => {
           {/* Login Form */}
           <form onSubmit={handleLogin} className="space-y-4">
             <Input
-              label="Username Guru"
+              id="login-username"
+              name="username"
+              label="Username"
               required
               value={username}
               onChange={(e) => setUsername(e.target.value)}
-              placeholder="Contoh: guru"
+              placeholder="Masukkan username Anda"
               autoComplete="username"
+              autoCorrect="off"
+              autoCapitalize="none"
+              spellCheck={false}
             />
 
-            <Input
-              label="Kata Sandi"
-              type="password"
-              required
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder="Masukkan kata sandi"
-              autoComplete="current-password"
-            />
+            <div className="space-y-1 w-full min-w-0">
+              <label
+                htmlFor="login-password"
+                className="block text-xs font-extrabold uppercase tracking-wider text-[#64748B]"
+              >
+                Kata Sandi <span className="text-rose-500 font-extrabold">*</span>
+              </label>
+              <div className="relative flex items-center">
+                <input
+                  id="login-password"
+                  name="password"
+                  type={showPassword ? 'text' : 'password'}
+                  required
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="Masukkan kata sandi"
+                  autoComplete="current-password"
+                  className="duo-input w-full min-w-0 pr-11"
+                />
+                <button
+                  type="button"
+                  aria-pressed={showPassword}
+                  aria-label={showPassword ? 'Sembunyikan kata sandi' : 'Tampilkan kata sandi'}
+                  onClick={() => setShowPassword((v) => !v)}
+                  className="absolute right-2 w-9 h-9 rounded-lg text-slate-500 hover:text-slate-800 flex items-center justify-center cursor-pointer"
+                >
+                  <MaterialIcon
+                    name={showPassword ? 'visibility_off' : 'visibility'}
+                    className="text-lg"
+                  />
+                </button>
+              </div>
+            </div>
 
             <Button
               type="submit"
@@ -120,7 +158,7 @@ export const LoginPage = () => {
               icon={<MaterialIcon name="login" className="text-xl" />}
               className="mt-3"
             >
-              Masuk ke Studio Guru
+              Masuk ke Sistem
             </Button>
           </form>
         </Card>

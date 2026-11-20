@@ -98,6 +98,10 @@
     }
   }
 
+  html {
+    scroll-padding-bottom: calc(5rem + env(safe-area-inset-bottom, 0px));
+  }
+
   body {
     background-color: #FBF9F5;
     color: #1C1917;
@@ -105,7 +109,19 @@
     font-weight: 600;
     margin: 0;
     padding: 0;
-    overflow-x: clip;
+    overflow-wrap: break-word;
+  }
+
+  img,
+  video {
+    max-inline-size: 100%;
+    block-size: auto;
+  }
+
+  h1,
+  h2,
+  h3 {
+    text-wrap: balance;
   }
 }
 
@@ -140,7 +156,7 @@
   font-family: 'Nunito', -apple-system, BlinkMacSystemFont, sans-serif;
 }
 
-/* 1. 3D Tactile Buttons (.duo-btn) */
+/* 1. 3D Tactile Buttons (.duo-btn) - Responsif HP, Tablet, dan Laptop */
 .duo-btn {
   position: relative;
   display: inline-flex;
@@ -150,10 +166,13 @@
   font-family: 'Nunito', sans-serif;
   font-weight: 800;
   font-size: 0.9375rem; /* 15px */
-  letter-spacing: 0.05em; /* 0.8px */
+  letter-spacing: 0.04em;
   text-transform: uppercase;
   border-radius: 16px;
-  padding: 0.75rem 1.25rem;
+  padding: 0.625rem 1.25rem;
+  max-inline-size: 100%;
+  text-align: center;
+  line-height: 1.25;
   cursor: pointer;
   user-select: none;
   text-decoration: none;
@@ -161,27 +180,27 @@
               box-shadow 0.08s ease,
               background-color 0.15s ease,
               border-color 0.15s ease;
-  white-space: nowrap;
+  white-space: normal;
 }
 
-/* Ukuran Konsisten Berbasis Tinggi (Tetap Border-Radius 16px & Letter-Spacing 0.05em) */
+/* Ukuran Konsisten Berbasis Min-Height agar aman saat membungkus di layar HP */
 .duo-btn-sm {
-  height: 36px;
-  padding: 0 0.875rem;
+  min-height: 36px;
+  padding: 0.375rem 0.875rem;
   font-size: 0.75rem;
   border-radius: 14px;
 }
 
 .duo-btn-md {
-  height: 44px;
-  padding: 0 1.25rem;
+  min-height: 44px;
+  padding: 0.5rem 1.125rem;
   font-size: 0.875rem;
   border-radius: 16px;
 }
 
 .duo-btn-lg {
-  height: 54px;
-  padding: 0 1.75rem;
+  min-height: 52px;
+  padding: 0.625rem 1.5rem;
   font-size: 1rem;
   border-radius: 16px;
 }
@@ -710,4 +729,121 @@
   animation: duoIconWaddle 1.2s cubic-bezier(0.45, 0.05, 0.55, 0.95) infinite;
   transform: scale(1.12);
   transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+
+/* 12. Modern Web Guidance: Dialog Overscroll Containment & Form :user-invalid */
+dialog:modal {
+  overscroll-behavior: contain;
+}
+dialog::backdrop {
+  overflow: hidden;
+  overscroll-behavior: contain;
+  background-color: rgba(15, 23, 42, 0.6);
+  backdrop-filter: blur(4px);
+}
+
+.pjj-field-control {
+  font: inherit;
+  font-size: max(1rem, 1em);
+  min-height: 48px;
+}
+
+.duo-input:is(:user-invalid, .user-invalid-fallback),
+.pjj-field-control:is(:user-invalid, .user-invalid-fallback) {
+  border-color: #DC2626 !important;
+  box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.16) !important;
+}
+
+/* 13. Responsive Table Container Query (Rekap Aktivitas PJJ Guru) */
+.pjj-table-wrapper {
+  overflow: auto;
+  max-inline-size: 100%;
+  max-block-size: min(560px, 72vh);
+  container-type: inline-size;
+  border-radius: 14px;
+  border: 1px solid #E2E8F0;
+  background: #FFFFFF;
+}
+
+.pjj-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  text-align: left;
+}
+
+.pjj-table thead {
+  position: sticky;
+  inset-block-start: 0;
+  z-index: 2;
+  background: #F8FAFC;
+}
+
+.pjj-table th,
+.pjj-table td {
+  padding: 12px 16px;
+  border-bottom: 1px solid #F1F5F9;
+  font-size: 0.875rem;
+  vertical-align: middle;
+}
+
+.pjj-table thead th {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #475569;
+  border-bottom: 1px solid #E2E8F0;
+  white-space: nowrap;
+}
+
+.pjj-table tbody tr:hover td {
+  background-color: #FBF9F5;
+}
+
+@container (width < 640px) {
+  .pjj-table,
+  .pjj-table thead,
+  .pjj-table tbody,
+  .pjj-table tr,
+  .pjj-table th,
+  .pjj-table td {
+    display: block;
+  }
+
+  .pjj-table thead {
+    display: none;
+  }
+
+  .pjj-table tbody tr {
+    margin: 12px;
+    border: 1px solid #E2E8F0;
+    border-radius: 12px;
+    background: #FFFFFF;
+    overflow: hidden;
+  }
+
+  .pjj-table tbody th {
+    position: sticky;
+    inset-block-start: 0;
+    z-index: 1;
+    background: #F8FAFC;
+    border-bottom: 1px solid #E2E8F0;
+    font-weight: 700;
+  }
+
+  .pjj-table tbody td {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 8px 16px;
+  }
+
+  .pjj-table tbody td::before {
+    content: attr(data-label);
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: #64748B;
+    flex-shrink: 0;
+  }
 }

@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { useParams, Link, useNavigate, useLocation } from 'react-router-dom';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import {
@@ -8,16 +8,19 @@ import {
   BackButton,
   VideoPlayer,
   QuizOverlay,
+  ClosingGameOverlay,
   ConfirmModal,
   EmptyState,
   Breadcrumb,
   CuePointItem,
   CuePointForm,
+  ClosingGameForm,
   useToast
 } from '../../components';
 import { MaterialIcon } from '../../utils/icons';
 import { curriculumService } from '../../services/curriculumService';
 import { formatSecondsToMMSS, parseMMSSToSeconds } from '../../utils/formatters';
+import { resolveClosingGameConfig } from '../../utils/closingGame';
 
 export const StudioPage = () => {
   const { subId } = useParams();
@@ -70,6 +73,28 @@ export const StudioPage = () => {
   // Confirm delete modal state
   const [deleteTargetId, setDeleteTargetId] = useState(null);
 
+  // Panel Kanan Tab ('quiz' | 'closing') & Pengaturan Penutup/PJJ
+  const [rightTab, setRightTab] = useState('quiz');
+  const [closingEnabled, setClosingEnabled] = useState(true);
+  const [closingMode, setClosingMode] = useState('PAIR_MATCH');
+  const [closingTitle, setClosingTitle] = useState('');
+  const [closingInstruction, setClosingInstruction] = useState('');
+  const [closingPairs, setClosingPairs] = useState([
+    { id: 'pair-1', emoji: 'star', label: 'Bintang Hebat' },
+    { id: 'pair-2', emoji: 'trophy', label: 'Piala Ceria' },
+    { id: 'pair-3', emoji: 'mascot', label: 'Sahabat Madani' }
+  ]);
+  const [closingQuickItems, setClosingQuickItems] = useState([
+    { id: 'gp-1', emoji: 'star', label: 'Gambar Tepat 1', is_correct: true },
+    { id: 'gp-2', emoji: 'trophy', label: 'Gambar Tepat 2', is_correct: true },
+    { id: 'gp-3', emoji: 'pan', label: 'Pengecoh 1', is_correct: false },
+    { id: 'gp-4', emoji: 'helmet', label: 'Pengecoh 2', is_correct: false }
+  ]);
+  const [closingIsPjj, setClosingIsPjj] = useState(false);
+  const [closingPjjNotes, setClosingPjjNotes] = useState('');
+  const [isSavingClosing, setIsSavingClosing] = useState(false);
+  const [previewClosingData, setPreviewClosingData] = useState(null);
+
   const triggerStudioAlert = (message, variant = 'warning', duration = 4000) => {
     if (alertTimerRef.current) clearTimeout(alertTimerRef.current);
     setStudioAlert({ message, variant });
@@ -89,6 +114,94 @@ export const StudioPage = () => {
   const theme = subData?.data?.theme;
   const subthemeGroup = subData?.data?.subthemeGroup;
   const cuePoints = sub?.cue_points || [];
+
+  useEffect(() => {
+    if (!sub) return;
+    setClosingIsPjj(Boolean(sub.is_pjj_enabled));
+    setClosingPjjNotes(sub.pjj_notes || '');
+
+    const raw = sub.closing_game;
+    if (raw && raw.enabled === false) {
+      setClosingEnabled(false);
+    } else {
+      setClosingEnabled(true);
+    }
+
+    const resolved = resolveClosingGameConfig({ ...sub, closing_game: raw?.enabled === false ? null : raw }, theme);
+    if (resolved) {
+      setClosingMode(resolved.mode || 'PAIR_MATCH');
+      setClosingTitle(raw?.title || resolved.title || '');
+      setClosingInstruction(raw?.instruction || resolved.instruction || '');
+      if (Array.isArray(raw?.pairs) && raw.pairs.length >= 2) {
+        setClosingPairs(raw.pairs);
+      } else if (Array.isArray(resolved.pairs)) {
+        setClosingPairs(resolved.pairs);
+      }
+      if (Array.isArray(raw?.items) && raw.items.length >= 2) {
+        setClosingQuickItems(raw.items);
+      }
+    }
+  }, [sub?.id]);
+
+  const buildClosingPayload = () => {
+    if (!closingEnabled) {
+      return { enabled: false };
+    }
+    if (closingMode === 'QUICK_PICK') {
+      return {
+        enabled: true,
+        mode: 'QUICK_PICK',
+        title: closingTitle.trim() || 'Permainan Penutup: Pilih Gambar Tepat',
+        instruction: closingInstruction.trim() || 'Ketuk semua gambar yang sesuai dengan cerita video tadi.',
+        items: closingQuickItems.map((it, i) => ({
+          id: it.id || `gp-${i + 1}`,
+          emoji: it.emoji || 'star',
+          label: it.label?.trim() || `Gambar ${i + 1}`,
+          is_correct: Boolean(it.is_correct)
+        }))
+      };
+    }
+    return {
+      enabled: true,
+      mode: 'PAIR_MATCH',
+      title: closingTitle.trim() || 'Permainan Penutup: Cocokkan Gambar Kembar',
+      instruction: closingInstruction.trim() || 'Ketuk dua kartu gambar yang kembar untuk menyalakan bintang.',
+      pairs: closingPairs.map((p, i) => ({
+        id: p.id || `pair-${i + 1}`,
+        emoji: p.emoji || 'star',
+        label: p.label?.trim() || `Kartu ${i + 1}`
+      }))
+    };
+  };
+
+  const handleSaveClosingSettings = async (e) => {
+    if (e && e.preventDefault) e.preventDefault();
+    if (!sub) return;
+    setIsSavingClosing(true);
+    const closingPayload = buildClosingPayload();
+    const res = await curriculumService.saveClosingGame(sub.id, {
+      closingGame: closingPayload,
+      isPjjEnabled: closingIsPjj,
+      pjjNotes: closingPjjNotes.trim()
+    });
+    setIsSavingClosing(false);
+
+    if (res.success) {
+      queryClient.invalidateQueries();
+      showToast(res.message || 'Pengaturan permainan penutup dan mode PJJ berhasil disimpan.', 'success');
+    } else {
+      showToast(res.message || 'Gagal menyimpan pengaturan penutup.', 'error');
+    }
+  };
+
+  const handlePreviewClosingGame = () => {
+    const cfg = buildClosingPayload();
+    if (!cfg || cfg.enabled === false) {
+      showToast('Aktifkan permainan penutup terlebih dahulu untuk melihat pratinjau.', 'info');
+      return;
+    }
+    setPreviewClosingData(cfg);
+  };
 
   const handleCaptureTimestamp = (sec) => {
     const formatted = formatSecondsToMMSS(sec);
@@ -430,6 +543,7 @@ export const StudioPage = () => {
             isStudioDrawerOpen={isStudioDrawerOpen}
             onToggleStudioDrawer={setIsStudioDrawerOpen}
             onFullscreenChange={setIsVideoFullscreen}
+            hasActiveOverlay={Boolean(isVideoFullscreen && previewQuizData)}
             studioDrawerContent={
               <div className="space-y-6 min-w-0">
                 <CuePointForm {...cuePointFormProps} />
@@ -519,6 +633,7 @@ export const StudioPage = () => {
                     isEditing={editingCpId === cp.id}
                     onSelect={(selected) => {
                       loadCuePointIntoForm(selected);
+                      setRightTab('quiz');
                       if (videoPlayerRef.current?.seekTo) {
                         videoPlayerRef.current.seekTo(selected.detik_muncul);
                         videoPlayerRef.current.pauseVideo();
@@ -532,10 +647,62 @@ export const StudioPage = () => {
           </Card>
         </div>
 
-        {/* KOLOM KANAN (5/12): Formulir Pengaturan Kuis Guru */}
+        {/* KOLOM KANAN (5/12): Tab Kuis Timeline & Pengaturan Penutup/PJJ */}
         <div className="xl:col-span-5 min-w-0">
-          <Card className="p-5 sm:p-6 min-w-0">
-            <CuePointForm {...cuePointFormProps} />
+          <Card className="p-5 sm:p-6 min-w-0 space-y-5">
+            {/* Switch Tab Bersih (Quiet Chrome) */}
+            <div className="grid grid-cols-2 gap-2 p-1 rounded-xl bg-slate-100 border border-slate-200">
+              <button
+                type="button"
+                onClick={() => setRightTab('quiz')}
+                className={`py-2 px-3 rounded-lg text-xs font-bold flex items-center justify-center gap-1.5 transition-colors cursor-pointer ${
+                  rightTab === 'quiz'
+                    ? 'bg-white text-slate-800 shadow-xs border border-slate-200/80'
+                    : 'text-slate-600 hover:text-slate-800'
+                }`}
+              >
+                <MaterialIcon name="quiz" className="text-base text-violet-600" />
+                <span>Kuis Timeline</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setRightTab('closing')}
+                className={`py-2 px-3 rounded-lg text-xs font-bold flex items-center justify-center gap-1.5 transition-colors cursor-pointer ${
+                  rightTab === 'closing'
+                    ? 'bg-white text-slate-800 shadow-xs border border-slate-200/80'
+                    : 'text-slate-600 hover:text-slate-800'
+                }`}
+              >
+                <MaterialIcon name="sports_esports" className="text-base text-amber-600" />
+                <span>Penutup & Mode PJJ</span>
+              </button>
+            </div>
+
+            {rightTab === 'quiz' ? (
+              <CuePointForm {...cuePointFormProps} />
+            ) : (
+              <ClosingGameForm
+                gameEnabled={closingEnabled}
+                setGameEnabled={setClosingEnabled}
+                gameMode={closingMode}
+                setGameMode={setClosingMode}
+                gameTitle={closingTitle}
+                setGameTitle={setClosingTitle}
+                gameInstruction={closingInstruction}
+                setGameInstruction={setClosingInstruction}
+                pairs={closingPairs}
+                setPairs={setClosingPairs}
+                quickItems={closingQuickItems}
+                setQuickItems={setClosingQuickItems}
+                isPjjEnabled={closingIsPjj}
+                setIsPjjEnabled={setClosingIsPjj}
+                pjjNotes={closingPjjNotes}
+                setPjjNotes={setClosingPjjNotes}
+                isSaving={isSavingClosing}
+                onSave={handleSaveClosingSettings}
+                onPreview={handlePreviewClosingGame}
+              />
+            )}
           </Card>
         </div>
       </div>
@@ -549,6 +716,15 @@ export const StudioPage = () => {
           onSkip={() => setPreviewQuizData(null)}
         />
       )}
+
+      {/* Modal Pratinjau Permainan Penutup Akhir Video */}
+      <ClosingGameOverlay
+        isOpen={Boolean(previewClosingData)}
+        gameConfig={previewClosingData}
+        isPreview={true}
+        onComplete={() => setPreviewClosingData(null)}
+        onSkip={() => setPreviewClosingData(null)}
+      />
 
       {/* Modal Konfirmasi Hapus Soal */}
       <ConfirmModal

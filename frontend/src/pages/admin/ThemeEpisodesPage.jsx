@@ -44,6 +44,8 @@ export const ThemeEpisodesPage = () => {
   const [formYtUrl, setFormYtUrl] = useState('');
   const [formTitle, setFormTitle] = useState('');
   const [formDesc, setFormDesc] = useState('');
+  const [formIsPjj, setFormIsPjj] = useState(false);
+  const [formPjjNotes, setFormPjjNotes] = useState('');
 
   // Informasi Tambahan Video (Terisi Otomatis)
   const [formEpisodeLabel, setFormEpisodeLabel] = useState('');
@@ -180,6 +182,8 @@ export const ThemeEpisodesPage = () => {
     setFormEpisodeLabel(`Video ${currentVideoCount + 1}`);
     setFormDuration('03:00');
     setFormDesc('');
+    setFormIsPjj(false);
+    setFormPjjNotes('');
     setFormSource('Kanal Edukasi YouTube');
     setFormLicense('YouTube Standard License (Official IFrame Embed)');
     setFormAi('Pertanyaan kuis disusun oleh Guru TKIT Al Madani.');
@@ -195,6 +199,8 @@ export const ThemeEpisodesPage = () => {
     setFormEpisodeLabel(video.label_episode || `Video ${video.urutan || 1}`);
     setFormDuration(formatSecondsToMMSS(video.durasi_detik || 180));
     setFormDesc(video.deskripsi_singkat || '');
+    setFormIsPjj(Boolean(video.is_pjj_enabled));
+    setFormPjjNotes(video.pjj_notes || '');
     setFormSource(video.sumber_atribusi || 'Kanal Edukasi YouTube');
     setFormLicense(
       video.jenis_lisensi ||
@@ -245,6 +251,8 @@ export const ThemeEpisodesPage = () => {
       deskripsi_singkat:
         formDesc.trim() ||
         `Ayo tonton video pembelajaran tentang ${formTitle.trim()} dan jawab kuisnya!`,
+      is_pjj_enabled: formIsPjj,
+      pjj_notes: formPjjNotes.trim(),
       sumber_atribusi: formSource.trim() || 'Kanal Edukasi YouTube',
       jenis_lisensi: formLicense.trim() || 'YouTube Standard License (Official IFrame Embed)',
       deklarasi_ai: formAi.trim() || 'Pertanyaan kuis disusun oleh Guru TKIT Al Madani.'
@@ -352,13 +360,15 @@ export const ThemeEpisodesPage = () => {
           </div>
         </div>
 
-        {/* Tombol Tambah Sub Tema & Tambah Video */}
-        <div className="relative z-10 flex flex-wrap items-center justify-center gap-2.5 shrink-0">
+        {/* Tombol Tambah Sub Tema & Tambah Video (Responsif HP & Desktop) */}
+        <div className="relative z-10 grid grid-cols-1 sm:flex sm:flex-wrap items-center justify-center gap-2.5 shrink-0 w-full lg:w-auto">
           <Button
             size="md"
             variant="white"
+            fullWidth
             onClick={handleOpenAddGroup}
-            icon={<MaterialIcon name="create_new_folder" className="text-lg text-[#7C3AED]" />}
+            icon={<MaterialIcon name="create_new_folder" className="text-lg text-[#7C3AED] shrink-0" />}
+            className="sm:w-auto"
           >
             + Tambah Sub Tema
           </Button>
@@ -366,10 +376,12 @@ export const ThemeEpisodesPage = () => {
           <Button
             size="md"
             variant="theme-white"
+            fullWidth
             themeColor={palette.hex}
             themeLip={palette.lip}
             onClick={() => handleOpenAddVideo(subGroups[0]?.id)}
-            icon={<MaterialIcon name="video_call" className="text-lg" />}
+            icon={<MaterialIcon name="video_call" className="text-lg shrink-0" />}
+            className="sm:w-auto"
           >
             + Tambah Video
           </Button>
@@ -472,15 +484,15 @@ export const ThemeEpisodesPage = () => {
                     {videos.map((sub, vIdx) => (
                       <div
                         key={sub.id}
-                        className="p-4 sm:p-5 rounded-xl bg-white border border-slate-200/90 shadow-xs hover:border-slate-300 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 transition-all"
+                        className="p-4 sm:p-5 rounded-xl bg-white border border-slate-200/90 shadow-xs hover:border-slate-300 flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4 transition-all min-w-0"
                       >
-                        <div className="flex flex-col sm:flex-row items-start gap-4 flex-1">
+                        <div className="flex flex-col sm:flex-row items-start gap-3.5 sm:gap-4 flex-1 min-w-0">
                           <img
                             src={`https://img.youtube.com/vi/${sub.youtube_video_id}/hqdefault.jpg`}
                             alt={sub.judul_video || sub.judul_subtema}
-                            className="w-32 h-22 object-cover rounded-xl bg-slate-900 border border-slate-200 shrink-0 shadow-xs"
+                            className="w-full sm:w-36 aspect-video object-cover rounded-xl bg-slate-900 border border-slate-200 shrink-0 shadow-xs"
                           />
-                          <div className="space-y-1">
+                          <div className="space-y-1 min-w-0 flex-1">
                             <div className="flex flex-wrap items-center gap-2">
                               <span className="text-[11px] font-extrabold uppercase px-2.5 py-0.5 rounded-md bg-[#E0F2FE] text-[#0284C7]">
                                 {sub.label_episode || `Video ${vIdx + 1}`}
@@ -496,16 +508,32 @@ export const ThemeEpisodesPage = () => {
                               {sub.deskripsi_singkat || '-'}
                             </p>
 
-                            <div className="flex items-center gap-2 pt-0.5">
+                            <div className="flex flex-wrap items-center gap-2 pt-0.5">
                               {(sub.cue_points || []).length > 0 ? (
-                                <span className="text-xs font-black text-[#10B981] flex items-center gap-1">
+                                <span className="text-xs font-bold text-[#059669] flex items-center gap-1">
                                   <MaterialIcon name="check_circle" className="text-base" />
                                   <span>{(sub.cue_points || []).length} Kuis Terpasang</span>
                                 </span>
                               ) : (
-                                <span className="text-xs font-black text-[#D97706] flex items-center gap-1">
+                                <span className="text-xs font-bold text-[#D97706] flex items-center gap-1">
                                   <MaterialIcon name="warning" className="text-base" />
                                   <span>Belum ada kuis (Klik Atur Kuis untuk menambahkan)</span>
+                                </span>
+                              )}
+                              {sub.closing_game?.enabled !== false && (
+                                <span className="text-[11px] font-semibold px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-700 border border-emerald-200">
+                                  Permainan Penutup
+                                </span>
+                              )}
+                              {sub.is_pjj_enabled && (
+                                <span className="text-[11px] font-semibold px-2 py-0.5 rounded-md bg-sky-50 text-sky-700 border border-sky-200 flex items-center gap-1">
+                                  <MaterialIcon name="home" className="text-xs" />
+                                  <span>Mode PJJ (Isi Nama & Kelas)</span>
+                                </span>
+                              )}
+                              {(sub.created_by_name || sub.updated_by_name) && (
+                                <span className="text-[11px] font-medium text-slate-500">
+                                  • Oleh {sub.created_by_name || sub.updated_by_name}
                                 </span>
                               )}
                             </div>
@@ -706,6 +734,37 @@ export const ThemeEpisodesPage = () => {
             />
           </div>
 
+          {/* 5. Pengaturan Mode PJJ (Isian Nama Anak & Kelas di Akhir Video) */}
+          <div className="p-4 rounded-xl bg-sky-50/70 border border-sky-200 space-y-3">
+            <label className="flex items-start gap-3 cursor-pointer select-none">
+              <input
+                type="checkbox"
+                checked={formIsPjj}
+                onChange={(e) => setFormIsPjj(e.target.checked)}
+                className="w-5 h-5 mt-0.5 accent-sky-600 rounded cursor-pointer shrink-0"
+              />
+              <div>
+                <span className="font-duo-display text-sm font-bold text-slate-800 block">
+                  Aktifkan Isian Nama Anak & Kelas (Khusus Mode PJJ)
+                </span>
+                <span className="text-xs font-medium text-slate-600 leading-relaxed block mt-0.5">
+                  Notes: Fitur ini khusus untuk <b>Pembelajaran Jarak Jauh (PJJ)</b> di rumah. Untuk pembelajaran bersama di kelas, biarkan nonaktif agar tidak semua subtema meminta isian nama.
+                </span>
+              </div>
+            </label>
+
+            {formIsPjj && (
+              <div className="pt-2 border-t border-sky-200/70">
+                <Textarea
+                  label="Catatan Khusus di Layar Anak/Orang Tua (Opsional)"
+                  rows={2}
+                  value={formPjjNotes}
+                  onChange={(e) => setFormPjjNotes(e.target.value)}
+                  placeholder="Contoh: Khusus PJJ di rumah: silakan isi nama dan kelas ananda untuk Ibu Guru."
+                />
+              </div>
+            )}
+          </div>
 
           {/* 6. Informasi Tambahan (Terisi Otomatis) */}
           <div className="pt-1">
@@ -791,7 +850,7 @@ export const ThemeEpisodesPage = () => {
                 onClick={(e) => handleSaveVideo(e, true)}
                 icon={<MaterialIcon name="movie_edit" className="text-lg" />}
               >
-                Simpan & Lanjut Atur Kuis →
+                Simpan & Atur Kuis
               </Button>
             </div>
           </div>

@@ -139,22 +139,23 @@ export const ThemesPage = () => {
     <AdminLayout>
       {/* Header Halaman */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
-        <div>
+        <div className="min-w-0">
           <span className="text-xs font-extrabold uppercase tracking-widest text-[#0284C7] block">
-            HIRARKI MATERI: 1. TEMA ➔ 2. SUB TEMA ➔ 3. VIDEO
+            Hirarki Materi: 1. Tema ➔ 2. Sub Tema ➔ 3. Video
           </span>
           <h1 className="font-duo-display text-2xl sm:text-3xl font-bold text-[#4B4B4B]">
-            Kelola Tema Pembelajaran
+            Bank Materi Bersama
           </h1>
-          <p className="text-sm font-bold text-[#777777]">
-            Buat atau ubah tema utama, lalu klik <b>Kelola Sub Tema & Video</b> pada kartu tema untuk mengatur isi materinya.
+          <p className="text-xs sm:text-sm font-bold text-[#777777] mt-1">
+            Buat atau ubah tema utama, lalu ketuk <b>Kelola Materi</b> pada kartu tema untuk mengatur subtema dan video.
           </p>
         </div>
         <Button
           size="md"
           variant="primary"
           onClick={handleOpenAdd}
-          icon={<MaterialIcon name="add" className="text-xl" />}
+          icon={<MaterialIcon name="add" className="text-xl shrink-0" />}
+          className="w-full sm:w-auto shrink-0"
         >
           Tambah Tema Baru
         </Button>
@@ -214,21 +215,31 @@ export const ThemesPage = () => {
                     {t.deskripsi}
                   </p>
 
-                  <div className="flex items-center gap-2 mb-4 text-xs font-bold text-[#64748B]">
+                  <div className="flex flex-wrap items-center gap-2 mb-4 text-xs font-bold text-[#64748B]">
                     <span>{subGroups.length} Sub Tema</span>
                     <span>•</span>
                     <span>{totalVideos} Video Pembelajaran</span>
+                    {(t.created_by_name || t.updated_by_name) && (
+                      <>
+                        <span>•</span>
+                        <span className="text-emerald-700 font-semibold">
+                          Disusun: {t.created_by_name || t.updated_by_name}
+                        </span>
+                      </>
+                    )}
                   </div>
                 </div>
 
-                <div className="flex flex-wrap items-center justify-between gap-2 pt-4 border-t border-[#E2E8F0]">
-                  <Link to={`/admin/tema/${encodeURIComponent(t.id || t.slug)}`}>
+                <div className="flex flex-wrap items-center justify-between gap-2.5 pt-4 border-t border-[#E2E8F0]">
+                  <Link to={`/admin/tema/${encodeURIComponent(t.id || t.slug)}`} className="flex-1 min-w-[160px] sm:flex-initial">
                     <Button
                       size="sm"
                       variant="blue"
-                      icon={<MaterialIcon name="folder_open" className="text-base" />}
+                      fullWidth
+                      icon={<MaterialIcon name="folder_open" className="text-base shrink-0" />}
+                      className="sm:w-auto"
                     >
-                      Kelola Sub Tema & Video ({subGroups.length} Sub Tema)
+                      Kelola Materi ({subGroups.length} Subtema)
                     </Button>
                   </Link>
 

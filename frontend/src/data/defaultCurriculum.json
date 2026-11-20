@@ -1,7 +1,7 @@
 {
-  "version": "3.0.0-hierarchy-tema-subtema-video",
+  "version": "3.1.0-postgres-pjj-closing-game",
   "school_name": "TKIT Al Madani",
-  "updated_at": "2026-10-23T14:55:00+07:00",
+  "updated_at": "2026-11-17T12:30:00+07:00",
   "themes": [
     {
       "id": "theme-profesi",
@@ -41,12 +41,25 @@
               "deklarasi_ai": "Kuis interaktif dan narasi suara otomatis disusun oleh Guru TKIT Al Madani.",
               "urutan": 1,
               "status_publikasi": "PUBLISHED",
+              "is_pjj_enabled": true,
+              "pjj_notes": "Khusus Pembelajaran Jarak Jauh (PJJ): Tuliskan nama ananda dan pilih kelas sebagai catatan belajar dari rumah untuk Ibu Guru.",
+              "closing_game": {
+                "enabled": true,
+                "mode": "PAIR_MATCH",
+                "title": "Permainan Penutup: Cocokkan Perlengkapan Pak Polisi",
+                "instruction": "Ketuk dua kartu gambar yang kembar untuk menyalakan seluruh bintang prestasi.",
+                "pairs": [
+                  { "id": "pair-1", "emoji": "police", "label": "Pak Polisi" },
+                  { "id": "pair-2", "emoji": "siren", "label": "Sirine Patroli" },
+                  { "id": "pair-3", "emoji": "helmet", "label": "Helm Aman" }
+                ]
+              },
               "cue_points": [
                 {
                   "id": "cp-polisi-1",
                   "detik_muncul": 10,
                   "tipe_interaksi": "MULTIPLE_CHOICE",
-                  "judul_pertanyaan": "Coba perhatikan! Kendaraan manakah yang memiliki sirine dan dikendarai oleh Pak Polisi?",
+                  "judul_pertanyaan": "Coba perhatikan, kendaraan manakah yang memiliki sirine dan dikendarai oleh Pak Polisi?",
                   "ikon_stimulus": "police",
                   "payload_interaksi": {
                     "options": [
@@ -69,8 +82,8 @@
                         "is_correct": false
                       }
                     ],
-                    "feedback_benar": "MasyaAllah, tepat sekali! Pak Polisi mengendarai mobil patroli bersirine untuk menjaga ketertiban jalan.",
-                    "feedback_salah": "Coba lihat lagi ya, kendaraan Pak Polisi memiliki lampu sirine di atasnya!"
+                    "feedback_benar": "MasyaAllah, tepat sekali. Pak Polisi mengendarai mobil patroli bersirine untuk menjaga ketertiban jalan.",
+                    "feedback_salah": "Coba lihat lagi ya, kendaraan Pak Polisi memiliki lampu sirine di atasnya."
                   }
                 },
                 {
@@ -80,18 +93,18 @@
                   "judul_pertanyaan": "Kalau lampu lalu lintas menyala warna MERAH, apa yang harus dilakukan pengendara?",
                   "ikon_stimulus": "flashcard",
                   "payload_interaksi": {
-                    "jawaban_balik": "Lampu MERAH artinya BERHENTI! Semua kendaraan harus berhenti di belakang garis putih agar penyeberang jalan aman."
+                    "jawaban_balik": "Lampu MERAH artinya BERHENTI. Semua kendaraan harus berhenti di belakang garis putih agar penyeberang jalan aman."
                   }
                 },
                 {
                   "id": "cp-polisi-3",
                   "detik_muncul": 40,
                   "tipe_interaksi": "ACTION_PROMPT",
-                  "judul_pertanyaan": "Ayo berdiri tegak! Mari kita tirukan gerakan hormat yang gagah seperti Pak Polisi!",
+                  "judul_pertanyaan": "Ayo berdiri tegak, mari kita tirukan gerakan hormat yang gagah seperti Pak Polisi.",
                   "ikon_stimulus": "action",
                   "payload_interaksi": {
                     "timer_detik": 8,
-                    "instruksi_tambahan": "Angkat tangan kanan ke dekat pelipis kanan sambil tersenyum semangat!"
+                    "instruksi_tambahan": "Angkat tangan kanan ke dekat pelipis kanan sambil tersenyum semangat."
                   }
                 }
               ]
@@ -121,6 +134,20 @@
               "deklarasi_ai": "Kuis interaktif dan narasi suara otomatis disusun oleh Guru TKIT Al Madani.",
               "urutan": 1,
               "status_publikasi": "PUBLISHED",
+              "is_pjj_enabled": false,
+              "pjj_notes": "",
+              "closing_game": {
+                "enabled": true,
+                "mode": "QUICK_PICK",
+                "title": "Permainan Penutup: Pilih Benda Penolong Kesehatan",
+                "instruction": "Ketuk gambar yang digunakan Dokter atau dipakai saat menjaga kebersihan tubuh.",
+                "items": [
+                  { "id": "gp-1", "emoji": "stethoscope", "label": "Stetoskop Dokter", "is_correct": true },
+                  { "id": "gp-2", "emoji": "soap", "label": "Sabun Cuci Tangan", "is_correct": true },
+                  { "id": "gp-3", "emoji": "pan", "label": "Wajan Masak", "is_correct": false },
+                  { "id": "gp-4", "emoji": "helmet", "label": "Helm Proyek", "is_correct": false }
+                ]
+              },
               "cue_points": [
                 {
                   "id": "cp-dokter-1",
@@ -149,19 +176,19 @@
                         "is_correct": false
                       }
                     ],
-                    "feedback_benar": "Hebat sekali! Stetoskop digunakan dokter untuk memeriksa suara detak jantung dan pernapasan.",
-                    "feedback_salah": "Belum tepat, alat dokter yang dikalungkan di leher namanya Stetoskop ya teman-teman!"
+                    "feedback_benar": "Hebat sekali. Stetoskop digunakan dokter untuk memeriksa suara detak jantung dan pernapasan.",
+                    "feedback_salah": "Belum tepat, alat dokter yang dikalungkan di leher namanya Stetoskop ya teman-teman."
                   }
                 },
                 {
                   "id": "cp-dokter-2",
                   "detik_muncul": 25,
                   "tipe_interaksi": "ACTION_PROMPT",
-                  "judul_pertanyaan": "Yuk kita praktikkan gerakan mencuci tangan 6 langkah supaya kuman pergi!",
+                  "judul_pertanyaan": "Yuk kita praktikkan gerakan mencuci tangan 6 langkah supaya kuman pergi.",
                   "ikon_stimulus": "action",
                   "payload_interaksi": {
                     "timer_detik": 8,
-                    "instruksi_tambahan": "Gosok telapak tangan, punggung tangan, dan sela-sela jari bersama-sama!"
+                    "instruksi_tambahan": "Gosok telapak tangan, punggung tangan, dan sela-sela jari bersama-sama."
                   }
                 }
               ]
@@ -208,6 +235,19 @@
               "deklarasi_ai": "Kuis interaktif dan narasi suara otomatis disusun oleh Guru TKIT Al Madani.",
               "urutan": 1,
               "status_publikasi": "PUBLISHED",
+              "is_pjj_enabled": false,
+              "pjj_notes": "",
+              "closing_game": {
+                "enabled": true,
+                "mode": "PAIR_MATCH",
+                "title": "Permainan Penutup: Cocokkan Gambar Sapi & Makanan Sehat",
+                "instruction": "Ketuk dua kartu yang kembar untuk membantu sapi menemukan rumput dan susunya.",
+                "pairs": [
+                  { "id": "pair-1", "emoji": "cow", "label": "Sapi Ternak" },
+                  { "id": "pair-2", "emoji": "grass", "label": "Rumput Hijau" },
+                  { "id": "pair-3", "emoji": "milk", "label": "Susu Segar" }
+                ]
+              },
               "cue_points": [
                 {
                   "id": "cp-sapi-1",
@@ -236,8 +276,8 @@
                         "is_correct": false
                       }
                     ],
-                    "feedback_benar": "Alhamdulillah, benar! Sapi suka makan rumput hijau segar dan menghasilkan susu yang bergizi.",
-                    "feedback_salah": "Yuk coba pilih yang warnanya hijau segar di padang rumput!"
+                    "feedback_benar": "Alhamdulillah, benar. Sapi suka makan rumput hijau segar dan menghasilkan susu yang bergizi.",
+                    "feedback_salah": "Yuk coba pilih yang warnanya hijau segar di padang rumput."
                   }
                 },
                 {
@@ -247,18 +287,18 @@
                   "judul_pertanyaan": "Minuman sehat apa yang dihasilkan oleh sapi perah untuk kita minum setiap pagi?",
                   "ikon_stimulus": "milk",
                   "payload_interaksi": {
-                    "jawaban_balik": "Susu Sapi Segar! Susu mengandung kalsium tinggi agar tulang dan gigi teman-teman tumbuh kuat."
+                    "jawaban_balik": "Susu Sapi Segar. Susu mengandung kalsium tinggi agar tulang dan gigi teman-teman tumbuh kuat."
                   }
                 },
                 {
                   "id": "cp-sapi-3",
                   "detik_muncul": 40,
                   "tipe_interaksi": "ACTION_PROMPT",
-                  "judul_pertanyaan": "Ayo kita tirukan suara sapi mengembik dengan kompak: \"Moooo... Moooo!\"",
+                  "judul_pertanyaan": "Ayo kita tirukan suara sapi mengembik dengan kompak: \"Moooo... Moooo.\"",
                   "ikon_stimulus": "action",
                   "payload_interaksi": {
                     "timer_detik": 6,
-                    "instruksi_tambahan": "Tirukan suara sapi bersama teman-teman satu kelas ya!"
+                    "instruksi_tambahan": "Tirukan suara sapi bersama teman-teman satu kelas ya."
                   }
                 }
               ]

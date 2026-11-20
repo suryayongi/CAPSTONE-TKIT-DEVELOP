@@ -94,10 +94,22 @@ export const EpisodeCard = ({
 
         {/* Baris Bawah: Metadata Bersih & Tombol Putar Video */}
         <div className="mt-4 pt-3.5 border-t border-[#F5F5F4] flex flex-wrap items-center justify-between gap-3">
-          <div className="flex items-center gap-2 text-xs font-medium text-[#78716C]">
+          <div className="flex flex-wrap items-center gap-2 text-xs font-medium text-[#78716C]">
             <span>{cueCount} Kuis Interaktif</span>
-            <span>•</span>
-            <span>Kanal: {episode.sumber_atribusi || 'YouTube Edukasi'}</span>
+            {episode.closing_game?.enabled !== false && (
+              <>
+                <span>•</span>
+                <span className="text-emerald-700 font-semibold">Permainan Penutup</span>
+              </>
+            )}
+            {episode.is_pjj_enabled && (
+              <>
+                <span>•</span>
+                <span className="px-2 py-0.5 rounded-md bg-sky-50 text-sky-700 border border-sky-200 font-semibold">
+                  Mode PJJ
+                </span>
+              </>
+            )}
           </div>
 
           <Button

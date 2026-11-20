@@ -41,8 +41,12 @@ export const SiteSettingsPage = () => {
     celebration_desc: 'Kamu telah menyelesaikan video dan kuis interaktif dengan luar biasa.',
     celebration_replay_btn: 'Putar Ulang Video',
     celebration_finish_btn: 'Selesai & Kembali ke Materi',
-    default_wrong_feedback: 'Hampir tepat! Yuk coba amati lagi gambarnya!'
+    default_wrong_feedback: 'Hampir tepat, ayo kita amati lagi dan pilih jawaban lainnya bersama Ibu Guru.',
+    pjj_class_input_mode: 'TEXT',
+    pjj_classes: ['TK A', 'TK B'],
+    pjj_form_note: 'Catatan Khusus PJJ: Isian nama dan kelas ini ditujukan bagi siswa yang belajar dari rumah (PJJ). Untuk belajar di kelas, Ibu Guru dapat menonaktifkannya di Studio.'
   });
+  const [pjjClassesText, setPjjClassesText] = useState('TK A, TK B');
 
   useEffect(() => {
     if (configData?.data) {
@@ -50,6 +54,9 @@ export const SiteSettingsPage = () => {
         ...prev,
         ...configData.data
       }));
+      if (Array.isArray(configData.data.pjj_classes)) {
+        setPjjClassesText(configData.data.pjj_classes.join(', '));
+      }
     }
   }, [configData]);
 
@@ -64,12 +71,22 @@ export const SiteSettingsPage = () => {
     if (e && e.preventDefault) e.preventDefault();
     setIsSaving(true);
 
-    const res = await curriculumService.saveSiteConfig(formState);
+    const parsedClasses = pjjClassesText
+      .split(',')
+      .map((s) => s.trim())
+      .filter(Boolean);
+
+    const payload = {
+      ...formState,
+      pjj_classes: parsedClasses.length > 0 ? parsedClasses : ['TK A', 'TK B']
+    };
+
+    const res = await curriculumService.saveSiteConfig(payload);
     setIsSaving(false);
 
     if (res.success) {
       queryClient.invalidateQueries();
-      showToast('Perubahan teks dan sambutan berhasil disimpan!', 'success');
+      showToast('Perubahan teks, sambutan, dan pengaturan PJJ berhasil disimpan.', 'success');
     } else {
       showToast(res.message, 'error');
     }
@@ -97,23 +114,25 @@ export const SiteSettingsPage = () => {
     <AdminLayout>
       {/* Top Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
-        <div>
-          <span className="text-xs font-extrabold uppercase tracking-widest text-[#D97706] block">
-            ATUR KALIMAT SAMBUTAN & PUJIAN
+        <div className="min-w-0">
+          <span className="text-xs font-bold text-[#B45309] block">
+            Atur Kalimat Sambutan & Konfigurasi PJJ
           </span>
           <h1 className="font-duo-display text-2xl sm:text-3xl font-bold text-[#4B4B4B]">
             Pengaturan Tampilan & Sambutan
           </h1>
-          <p className="text-sm font-bold text-[#777777]">
-            Ubah kalimat sapaan di halaman depan, pesan maskot lebah, hingga ucapan pujian saat anak selesai menonton video.
+          <p className="text-xs sm:text-sm font-medium text-[#64748B] mt-1">
+            Ubah kalimat sapaan di halaman depan, pesan maskot burung hantu, ucapan selesai belajar, serta mode pengisian PJJ.
           </p>
         </div>
-        <div className="flex items-center gap-2 shrink-0">
-          <Link to="/">
+        <div className="flex items-center gap-2 shrink-0 w-full sm:w-auto">
+          <Link to="/" className="w-full sm:w-auto">
             <Button
               size="md"
               variant="outline"
-              icon={<MaterialIcon name="visibility" className="text-base text-[#10B981]" />}
+              fullWidth
+              icon={<MaterialIcon name="visibility" className="text-base text-[#10B981] shrink-0" />}
+              className="sm:w-auto"
             >
               Lihat Halaman Belajar Anak
             </Button>
@@ -121,11 +140,12 @@ export const SiteSettingsPage = () => {
         </div>
       </div>
 
-      {/* 2 Tab Navigasi Visual (Tanpa Identitas Brand Header/Footer) */}
-      <div className="flex flex-wrap items-center gap-2 mb-6 border-b-2 border-[#E5E5E5] pb-3">
+      {/* Tab Navigasi Visual (HP Friendly Stack/Wrap) */}
+      <div className="grid grid-cols-1 sm:flex sm:flex-wrap items-stretch sm:items-center gap-2 mb-6 border-b border-slate-200 pb-3">
         {[
           { id: 'hero', label: '1. Sambutan Halaman Depan & Maskot', icon: 'campaign' },
-          { id: 'catalog', label: '2. Teks Halaman & Ucapan Selesai Belajar', icon: 'celebration' }
+          { id: 'catalog', label: '2. Teks Halaman & Ucapan Selesai Belajar', icon: 'celebration' },
+          { id: 'pjj', label: '3. Konfigurasi Form & Catatan PJJ', icon: 'assignment_ind' }
         ].map((tab) => {
           const isActive = activeTab === tab.id;
           return (
@@ -133,20 +153,20 @@ export const SiteSettingsPage = () => {
               key={tab.id}
               type="button"
               onClick={() => setActiveTab(tab.id)}
-              className={`px-4 py-2.5 rounded-xl font-duo-display text-sm font-bold transition flex items-center gap-2 ${
+              className={`min-h-[44px] px-4 py-2.5 rounded-xl font-duo-display text-sm font-bold transition-colors flex items-center gap-2 cursor-pointer text-left ${
                 isActive
-                  ? 'bg-[#E0F2FE] text-[#0284C7] border-2 border-[#0EA5E9] shadow-xs'
-                  : 'bg-white text-[#777777] border-2 border-[#E5E5E5] hover:border-[#CBD5E1]'
+                  ? 'bg-[#E0F2FE] text-[#0284C7] border border-[#0EA5E9]'
+                  : 'bg-white text-[#64748B] border border-slate-200 hover:border-slate-300'
               }`}
             >
-              <MaterialIcon name={tab.icon} className="text-xl" />
+              <MaterialIcon name={tab.icon} className="text-xl shrink-0" />
               <span>{tab.label}</span>
             </button>
           );
         })}
       </div>
 
-      <form onSubmit={handleSave} className="space-y-6 pb-20">
+      <form onSubmit={handleSave} className="space-y-6 pb-8">
         {/* TAB 1: SAMBUTAN HALAMAN DEPAN & SAPAAN MASKOT */}
         {activeTab === 'hero' && (
           <div className="space-y-5 animate-pop-in">
@@ -199,7 +219,7 @@ export const SiteSettingsPage = () => {
                 />
 
                 <Input
-                  label="Kalimat Sapaan Maskot Lebah"
+                  label="Kalimat Sapaan Maskot Burung Hantu"
                   value={formState.banner_mascot_greeting}
                   onChange={(e) => handleChange('banner_mascot_greeting', e.target.value)}
                   placeholder="Halo Sahabat Madani! Siap bermain?"
@@ -304,22 +324,129 @@ export const SiteSettingsPage = () => {
           </div>
         )}
 
-        {/* Sticky Save Bar di Bagian Bawah Layar */}
-        <div className="fixed bottom-0 left-0 lg:left-64 right-0 z-30 bg-white/95 backdrop-blur-md border-t-2 border-[#CBD5E1] p-3 sm:p-4 shadow-2xl flex items-center justify-between gap-3">
-          <div className="flex items-center gap-2 text-xs font-black text-[#64748B]">
-            <MaterialIcon name="info" className="text-lg text-[#0EA5E9]" />
-            <span className="hidden sm:inline">Klik tombol Simpan setelah mengubah kalimat di atas agar tampil di layar anak.</span>
+        {/* TAB 3: KONFIGURASI FORM & CATATAN MODE PJJ */}
+        {activeTab === 'pjj' && (
+          <div className="space-y-5 animate-pop-in">
+            <Card className="p-5 sm:p-6 space-y-5">
+              <div className="pb-3 border-b border-slate-200 flex items-start sm:items-center gap-3">
+                <MaterialIcon name="assignment_ind" className="text-2xl text-sky-600 shrink-0 mt-0.5 sm:mt-0" />
+                <div>
+                  <h2 className="font-duo-display text-lg sm:text-xl font-bold text-slate-800">
+                    Konfigurasi Form Nama, Kelas & Catatan PJJ
+                  </h2>
+                  <p className="text-xs font-medium text-slate-500 mt-0.5">
+                    Atur cara pengisian kelas siswa di akhir video bagi materi yang mengaktifkan Mode PJJ.
+                  </p>
+                </div>
+              </div>
+
+              <div className="space-y-5">
+                {/* Pilihan Mode Pengisian Kelas (Ketik Manual vs Pilihan Tombol) */}
+                <fieldset className="space-y-2.5">
+                  <legend className="text-sm font-bold text-slate-700">
+                    Cara Pengisian Kelas Anak di Akhir Video PJJ
+                  </legend>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    {[
+                      {
+                        value: 'TEXT',
+                        title: 'Isi Manual / Ketik Sendiri (Bawaan)',
+                        desc: 'Orang tua atau siswa mengetik bebas nama & kelasnya tanpa dibatasi tombol pilihan.'
+                      },
+                      {
+                        value: 'SELECT',
+                        title: 'Pilih dari Daftar Kelas',
+                        desc: 'Orang tua atau siswa cukup mengetuk pilihan kelas yang Anda daftarkan di bawah.'
+                      }
+                    ].map((opt) => {
+                      const activeMode = formState.pjj_class_input_mode || 'TEXT';
+                      const isSelected = activeMode === opt.value;
+                      return (
+                        <label
+                          key={opt.value}
+                          className={`p-3.5 rounded-xl border-2 cursor-pointer transition-colors flex items-start gap-2.5 min-h-[52px] ${
+                            isSelected
+                              ? 'bg-sky-50/70 border-sky-500 text-sky-950'
+                              : 'bg-white border-slate-200 text-slate-700 hover:border-slate-300'
+                          }`}
+                        >
+                          <input
+                            type="radio"
+                            name="pjj_class_input_mode"
+                            value={opt.value}
+                            checked={isSelected}
+                            onChange={() => handleChange('pjj_class_input_mode', opt.value)}
+                            className="mt-1 accent-sky-600 shrink-0"
+                          />
+                          <span className="text-xs leading-relaxed">
+                            <strong className="block font-bold text-sm">{opt.title}</strong>
+                            <span className="text-slate-600">{opt.desc}</span>
+                          </span>
+                        </label>
+                      );
+                    })}
+                  </div>
+                </fieldset>
+
+                {formState.pjj_class_input_mode === 'SELECT' && (
+                  <div className="p-4 rounded-xl bg-slate-50 border border-slate-200 space-y-2">
+                    <Input
+                      label="Daftar Pilihan Kelas (Pisahkan dengan koma)"
+                      required
+                      value={pjjClassesText}
+                      onChange={(e) => setPjjClassesText(e.target.value)}
+                      placeholder="Contoh: TK A, TK B, Kelompok Bermain"
+                    />
+                    <div className="flex flex-wrap items-center gap-2 pt-1">
+                      <span className="text-xs font-semibold text-slate-500">Pratinjau Pilihan:</span>
+                      {pjjClassesText
+                        .split(',')
+                        .map((c) => c.trim())
+                        .filter(Boolean)
+                        .map((cls) => (
+                          <span
+                            key={cls}
+                            className="px-3 py-1 rounded-lg bg-emerald-50 border border-emerald-200 text-xs font-bold text-emerald-800"
+                          >
+                            {cls}
+                          </span>
+                        ))}
+                    </div>
+                  </div>
+                )}
+
+                <Textarea
+                  label="Catatan (Notes) Bawaan untuk Orang Tua / Siswa di Form PJJ"
+                  rows={3}
+                  value={formState.pjj_form_note || ''}
+                  onChange={(e) => handleChange('pjj_form_note', e.target.value)}
+                  placeholder="Catatan Khusus PJJ: Isian nama dan kelas ini ditujukan bagi siswa yang belajar dari rumah..."
+                />
+              </div>
+            </Card>
+          </div>
+        )}
+
+        {/* Sticky Save Bar di Bagian Bawah Area Konten (Aman di semua lebar layar & sidebar collapse) */}
+        <div
+          className="sticky bottom-3 z-30 bg-white/95 backdrop-blur-md border border-slate-200 rounded-2xl p-3 sm:p-4 shadow-lg flex flex-col sm:flex-row sm:items-center justify-between gap-2.5"
+          style={{ paddingBottom: 'max(0.75rem, env(safe-area-inset-bottom, 0px))' }}
+        >
+          <div className="hidden sm:flex items-center gap-2 text-xs font-bold text-[#64748B]">
+            <MaterialIcon name="info" className="text-lg text-[#0EA5E9] shrink-0" />
+            <span>Klik tombol Simpan setelah mengubah kalimat di atas agar tampil di layar anak.</span>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="grid grid-cols-2 sm:flex items-center gap-2 w-full sm:w-auto">
             <Button
               type="button"
               size="md"
               variant="outline"
               onClick={() => setIsResetConfirmOpen(true)}
-              icon={<MaterialIcon name="restart_alt" className="text-lg text-[#F59E0B]" />}
+              icon={<MaterialIcon name="restart_alt" className="text-lg text-[#F59E0B] shrink-0" />}
+              className="w-full sm:w-auto"
             >
-              Kembalikan Teks Awal
+              <span>Reset Awal</span>
             </Button>
 
             <Button
@@ -327,9 +454,10 @@ export const SiteSettingsPage = () => {
               size="md"
               variant="primary"
               loading={isSaving}
-              icon={<MaterialIcon name="save" className="text-xl" />}
+              icon={<MaterialIcon name="save" className="text-xl shrink-0" />}
+              className="w-full sm:w-auto"
             >
-              Simpan Perubahan
+              <span>Simpan Perubahan</span>
             </Button>
           </div>
         </div>

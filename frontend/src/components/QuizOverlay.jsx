@@ -11,6 +11,7 @@ export const QuizOverlay = ({
   isPreview = false
 }) => {
   const [answeredCorrectly, setAnsweredCorrectly] = useState(false);
+  const [hadWrongAttempt, setHadWrongAttempt] = useState(false);
   const [feedback, setFeedback] = useState(null); // { type: 'correct' | 'wrong', message: string }
   const [selectedOptId, setSelectedOptId] = useState(null);
   const [flashcardRevealed, setFlashcardRevealed] = useState(false);
@@ -22,6 +23,7 @@ export const QuizOverlay = ({
     if (!cuePoint) return;
 
     setAnsweredCorrectly(false);
+    setHadWrongAttempt(false);
     setFeedback(null);
     setSelectedOptId(null);
     setFlashcardRevealed(false);
@@ -69,9 +71,10 @@ export const QuizOverlay = ({
       setFeedback({ type: 'correct', message: msg });
     } else {
       audioEngine.playWrong();
+      setHadWrongAttempt(true);
       const msg =
         (cuePoint.payload_interaksi && cuePoint.payload_interaksi.feedback_salah) ||
-        'Hampir tepat! Ayo kita coba amati dan pilih jawaban lainnya ya!';
+        'Hampir tepat. Ayo kita coba amati dan pilih jawaban lainnya ya.';
       setFeedback({ type: 'wrong', message: msg });
     }
   };
@@ -91,7 +94,11 @@ export const QuizOverlay = ({
       : 'Ayo Tirukan Gerakan';
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-xs flex items-center justify-center p-3 sm:p-6 overflow-y-auto animate-fade-in">
+    <div
+      className="fixed inset-0 z-[9999] bg-black/80 backdrop-blur-xs flex items-center justify-center p-3 sm:p-6 overflow-y-auto overscroll-contain animate-fade-in"
+      role="dialog"
+      aria-modal="true"
+    >
       {/* Modal Popup Kuis Berskala Besar (Mengisi ~70% Layar dengan Visual Jelas) */}
       <div className="duo-card w-[94vw] sm:w-[86vw] lg:w-[70vw] max-w-5xl max-h-[92vh] overflow-y-auto p-6 sm:p-9 lg:p-11 animate-pop-in shadow-2xl text-[#1E293B] bg-white border-2 border-[#E5E5E5] rounded-[32px] flex flex-col justify-between">
         <div>
@@ -145,7 +152,7 @@ export const QuizOverlay = ({
           {/* 1. Tipe MULTIPLE_CHOICE (Grid Opsi Taktil 3D Berskala Besar) */}
           {cuePoint.tipe_interaksi === 'MULTIPLE_CHOICE' && (
             <div className="space-y-4 mb-6">
-              <div className={`grid grid-cols-1 sm:grid-cols-${Math.min(3, Math.max(2, options.length))} gap-4 sm:gap-6`}>
+              <div className={`grid grid-cols-1 ${options.length >= 3 ? 'sm:grid-cols-3' : 'sm:grid-cols-2'} gap-4 sm:gap-6`}>
                 {options.map((opt, idx) => {
                   const isSelected = selectedOptId === opt.id;
                   const isCorrect = opt.is_correct && answeredCorrectly;
@@ -163,8 +170,8 @@ export const QuizOverlay = ({
                       className={tileClass}
                       type="button"
                     >
-                      <span className="absolute top-3 left-3 w-8 h-8 sm:w-9 sm:h-9 rounded-xl border border-[#E5E5E5] bg-white text-[#4B4B4B] font-mono text-sm sm:text-base font-bold flex items-center justify-center shadow-xs">
-                        {idx + 1}
+                      <span className="absolute top-3 left-3 w-8 h-8 sm:w-9 sm:h-9 rounded-xl border border-[#E5E5E5] bg-white text-[#4B4B4B] font-duo-display text-sm sm:text-base font-bold flex items-center justify-center shadow-xs">
+                        {String.fromCharCode(65 + idx)}
                       </span>
                       <div className="my-1 sm:my-2">
                         <Icon name={opt.emoji || 'star'} className="w-20 h-20 sm:w-24 sm:h-24 lg:w-28 lg:h-28" />
@@ -254,7 +261,7 @@ export const QuizOverlay = ({
             <Button
               size="lg"
               variant="secondary"
-              onClick={onComplete}
+              onClick={() => onComplete && onComplete({ hadWrongAttempt })}
               iconRight={<MaterialIcon name="arrow_forward" className="text-2xl" />}
             >
               {isPreview ? 'Selesai Uji Coba' : 'Lanjutkan Video'}

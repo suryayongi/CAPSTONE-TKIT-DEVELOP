@@ -9,13 +9,16 @@
   "banner_mascot_greeting": "Halo Sahabat Madani! Siap bermain?",
   "catalog_section_title": "Pilih Tema Pembelajaran",
   "empty_catalog_title": "Belum Ada Materi yang Ditampilkan",
-  "empty_catalog_desc": "Ibu Guru sedang menyiapkan video pembelajaran seru untuk teman-teman!",
+  "empty_catalog_desc": "Ibu Guru sedang menyiapkan video pembelajaran seru untuk teman-teman.",
   "theme_back_label": "Kembali ke Daftar Tema",
   "episode_section_title": "Pilih Sub Tema & Video Pembelajaran",
   "episode_play_label": "Putar Video",
-  "celebration_title": "Pelajaran Selesai! Luar Biasa!",
-  "celebration_desc": "Alhamdulillah, teman-teman sudah selesai menonton video dan menjawab semua kuis dengan sangat hebat!",
+  "celebration_title": "Alhamdulillah, Pelajaran Selesai!",
+  "celebration_desc": "MasyaAllah, ananda sudah menyelesaikan video dan permainan penutup dengan sangat hebat.",
   "celebration_replay_btn": "Putar Ulang Video",
   "celebration_finish_btn": "Selesai & Kembali ke Materi",
-  "default_wrong_feedback": "Belum tepat, ayo kita amati lagi dan pilih jawaban lainnya bersama Ibu Guru!"
+  "default_wrong_feedback": "Hampir tepat, ayo kita amati lagi dan pilih jawaban lainnya bersama Ibu Guru.",
+  "pjj_class_input_mode": "TEXT",
+  "pjj_classes": ["TK A", "TK B"],
+  "pjj_form_note": "Catatan Khusus PJJ: Isian nama dan kelas ini ditujukan bagi siswa yang belajar dari rumah (PJJ). Untuk belajar di kelas, Ibu Guru dapat menonaktifkannya di Studio."
 }

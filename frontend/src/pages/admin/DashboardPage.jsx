@@ -45,7 +45,7 @@ export const DashboardPage = () => {
     if (!file) return;
     const reader = new FileReader();
     reader.onload = async (evt) => {
-      const res = curriculumService.importCurriculumJson(evt.target.result);
+      const res = await curriculumService.importCurriculumJson(evt.target.result);
       if (res.success) {
         showToast(res.message, 'success');
         queryClient.invalidateQueries();
@@ -69,42 +69,59 @@ export const DashboardPage = () => {
 
   return (
     <AdminLayout>
-      {/* 1. Studio Header Banner - Pusat Kontrol Utama yang Tenang & Berwibawa */}
-      <div className="bg-[#214337] text-white rounded-2xl p-6 sm:p-8 mb-6 shadow-xs border border-[#18342B] relative overflow-hidden flex flex-col md:flex-row md:items-center justify-between gap-6">
-        <div className="flex items-center gap-5 relative z-10">
-          <div className="w-16 h-16 rounded-2xl bg-white/10 border border-white/20 text-white flex items-center justify-center shrink-0 shadow-xs">
-            <Icon name="teacher" className="w-11 h-11" />
+      {/* 1. Studio Header Banner - Simetris & Adaptif di HP, Tablet, dan Laptop */}
+      <div className="bg-[#214337] text-white rounded-2xl p-5 sm:p-7 mb-6 shadow-xs border border-[#18342B] flex flex-col lg:flex-row lg:items-center justify-between gap-5">
+        <div className="flex items-start gap-4 min-w-0">
+          <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-white/10 border border-white/20 text-white flex items-center justify-center shrink-0 shadow-xs">
+            <Icon name="teacher" className="w-9 h-9 sm:w-10 sm:h-10" />
           </div>
-          <div>
-            <div className="inline-flex items-center gap-2 px-3 py-0.5 rounded-full bg-emerald-900/60 border border-emerald-400/30 text-emerald-200 text-xs font-semibold mb-2">
-              <span className="w-2 h-2 rounded-full bg-emerald-400" />
-              <span>Ruang Kerja Guru • TKIT Al Madani</span>
+          <div className="min-w-0 flex-1">
+            <div className="flex flex-wrap items-center gap-2 mb-2">
+              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-emerald-900/70 border border-emerald-400/30 text-emerald-100 text-xs font-semibold">
+                <span
+                  className={`w-2 h-2 rounded-full shrink-0 ${
+                    stats.storageMode === 'postgres' ? 'bg-emerald-400' : 'bg-amber-300'
+                  }`}
+                />
+                <span>
+                  {stats.storageMode === 'postgres'
+                    ? 'Neon Postgres Aktif'
+                    : 'Penyimpanan Lokal'}
+                </span>
+              </span>
+              <span className="text-xs font-semibold text-emerald-100/80">
+                Ruang Kerja Guru • TKIT Al Madani
+              </span>
             </div>
-            <h1 className="font-duo-display text-2xl sm:text-3xl font-bold text-white tracking-tight leading-tight">
-              Studio Kurikulum & Materi
+            <h1 className="font-duo-display text-xl sm:text-2xl lg:text-3xl font-bold text-white tracking-tight leading-snug">
+              Studio Kurikulum & Bank Materi Bersama
             </h1>
-            <p className="text-sm font-medium text-emerald-100/80 mt-1 max-w-xl leading-relaxed">
-              Pusat kendali tema pembelajaran, koleksi video, serta titik kuis interaktif untuk siswa kelas TK A & TK B.
+            <p className="text-xs sm:text-sm font-medium text-emerald-100/85 mt-1.5 max-w-xl leading-relaxed">
+              Seluruh tema, subtema, video, dan kuis tersimpan terpusat agar dapat dipakai ulang bersama oleh semua guru TK A & TK B.
             </p>
           </div>
         </div>
 
         {/* Tombol Aksi Cepat Header */}
-        <div className="flex items-center gap-3 shrink-0 relative z-10">
-          <Link to="/admin/tema">
+        <div className="grid grid-cols-1 sm:flex sm:flex-wrap items-center gap-2.5 shrink-0 w-full lg:w-auto">
+          <Link to="/admin/tema" className="w-full sm:w-auto">
             <Button
               size="md"
               variant="yellow"
-              icon={<MaterialIcon name="folder_special" className="text-lg" />}
+              fullWidth
+              icon={<MaterialIcon name="folder_special" className="text-lg shrink-0" />}
+              className="sm:w-auto"
             >
               Kelola Tema & Video
             </Button>
           </Link>
-          <Link to="/" target="_blank">
+          <Link to="/" target="_blank" className="w-full sm:w-auto">
             <Button
               size="md"
               variant="white"
-              icon={<MaterialIcon name="visibility" className="text-base text-stone-700" />}
+              fullWidth
+              icon={<MaterialIcon name="visibility" className="text-base text-stone-700 shrink-0" />}
+              className="sm:w-auto"
             >
               Lihat Tampilan Siswa
             </Button>
@@ -210,54 +227,56 @@ export const DashboardPage = () => {
       {/* 3. Baris Pintasan Utilitas Ramping (Tampilan & Cadangan Materi) */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
         {/* Utilitas 1: Pengaturan Tampilan & Sambutan */}
-        <div className="bg-white rounded-2xl border border-[#E7E5E4] p-5 flex items-center justify-between gap-4 shadow-xs">
-          <div className="flex items-center gap-3.5 min-w-0">
+        <div className="bg-white rounded-2xl border border-[#E7E5E4] p-5 flex flex-col justify-between gap-4 shadow-xs">
+          <div className="flex items-start gap-3.5 min-w-0">
             <div className="w-11 h-11 rounded-xl bg-amber-50 text-amber-700 flex items-center justify-center shrink-0 border border-amber-200/60">
               <MaterialIcon name="edit_note" className="text-2xl" />
             </div>
             <div className="min-w-0">
-              <h3 className="font-duo-display text-base font-bold text-[#1C1917] truncate">
-                Tampilan & Sambutan Maskot
+              <h3 className="font-duo-display text-base font-bold text-[#1C1917]">
+                Tampilan, Sambutan & Kelas PJJ
               </h3>
-              <p className="text-xs text-[#78716C] mt-0.5 truncate">
-                Atur kalimat sapaan, pesan maskot Madani, dan ucapan pujian.
+              <p className="text-xs text-[#78716C] mt-1 leading-relaxed">
+                Atur kalimat sapaan, pesan maskot Madani, ucapan pujian, serta daftar pilihan kelas PJJ.
               </p>
             </div>
           </div>
-          <Link to="/admin/pengaturan" className="shrink-0">
-            <Button size="sm" variant="outline" icon={<MaterialIcon name="tune" className="text-base text-[#78716C]" />}>
-              Atur
-            </Button>
-          </Link>
+          <div className="flex items-center justify-end pt-2 border-t border-stone-100">
+            <Link to="/admin/pengaturan" className="shrink-0">
+              <Button size="sm" variant="outline" icon={<MaterialIcon name="tune" className="text-base text-[#78716C]" />}>
+                Atur Tampilan & PJJ
+              </Button>
+            </Link>
+          </div>
         </div>
 
         {/* Utilitas 2: Cadangan & Sinkronisasi Materi */}
-        <div className="bg-white rounded-2xl border border-[#E7E5E4] p-5 flex items-center justify-between gap-4 shadow-xs">
-          <div className="flex items-center gap-3.5 min-w-0">
+        <div className="bg-white rounded-2xl border border-[#E7E5E4] p-5 flex flex-col justify-between gap-4 shadow-xs">
+          <div className="flex items-start gap-3.5 min-w-0">
             <div className="w-11 h-11 rounded-xl bg-stone-100 text-stone-700 flex items-center justify-center shrink-0 border border-stone-200">
               <MaterialIcon name="sync_alt" className="text-2xl" />
             </div>
-            <div className="min-w-0">
+            <div className="min-w-0 flex-1">
               <div className="flex items-center gap-1.5">
-                <h3 className="font-duo-display text-base font-bold text-[#1C1917] truncate">
+                <h3 className="font-duo-display text-base font-bold text-[#1C1917]">
                   Cadangan Materi Belajar
                 </h3>
                 <button
                   type="button"
                   onClick={() => setIsBackupHelpOpen(true)}
-                  className="text-stone-400 hover:text-stone-700 transition cursor-pointer"
+                  className="text-stone-400 hover:text-stone-700 transition cursor-pointer shrink-0"
                   title="Pelajari fungsi dan cara pakai cadangan materi"
                 >
                   <MaterialIcon name="help_outline" className="text-base" />
                 </button>
               </div>
-              <p className="text-xs text-[#78716C] mt-0.5 truncate">
+              <p className="text-xs text-[#78716C] mt-1 leading-relaxed">
                 Simpan berkas JSON atau muat materi ke laptop kelas lain.
               </p>
             </div>
           </div>
 
-          <div className="flex items-center gap-2 shrink-0">
+          <div className="flex flex-wrap items-center justify-end gap-2 pt-2 border-t border-stone-100 shrink-0">
             <Button
               size="sm"
               variant="outline"
@@ -296,32 +315,62 @@ export const DashboardPage = () => {
         </div>
       </div>
 
-      {/* 4. Panel Pusat Akses Kelola Materi (Fokus & Menghilangkan Redundansi) */}
-      <div className="bg-white rounded-2xl border border-[#E7E5E4] p-6 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-5 mb-6">
-        <div className="flex items-start gap-4 min-w-0">
-          <div className="w-12 h-12 rounded-xl bg-emerald-50 text-emerald-700 border border-emerald-200/80 flex items-center justify-center shrink-0">
-            <MaterialIcon name="auto_stories" className="text-2xl" />
+      {/* 4. Panel Pusat Akses Kelola Materi & Rekap Belajar PJJ */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6">
+        <div className="bg-white rounded-2xl border border-[#E7E5E4] p-6 shadow-xs flex flex-col justify-between gap-4">
+          <div className="flex items-start gap-4 min-w-0">
+            <div className="w-12 h-12 rounded-xl bg-emerald-50 text-emerald-700 border border-emerald-200/80 flex items-center justify-center shrink-0">
+              <MaterialIcon name="auto_stories" className="text-2xl" />
+            </div>
+            <div>
+              <h2 className="font-duo-display text-lg font-bold text-stone-900 tracking-tight">
+                Pusat Manajemen Tema & Video
+              </h2>
+              <p className="text-xs sm:text-sm text-stone-600 mt-1 leading-relaxed">
+                Tambah tema, subtema mingguan, video YouTube, kuis timeline, hingga permainan penutup dan saklar Mode PJJ.
+              </p>
+            </div>
           </div>
+
           <div>
-            <h2 className="font-duo-display text-lg font-bold text-stone-900 tracking-tight">
-              Pusat Manajemen Tema & Video Pembelajaran
-            </h2>
-            <p className="text-xs sm:text-sm text-stone-600 mt-1 max-w-2xl leading-relaxed">
-              Seluruh penambahan tema baru, pembagian subtema mingguan, tautan video YouTube, hingga penyusunan titik kuis interaktif terpusat di menu <strong>Kelola Materi</strong>.
-            </p>
+            <Link to="/admin/tema">
+              <Button
+                size="md"
+                variant="primary"
+                icon={<MaterialIcon name="arrow_forward" className="text-lg" />}
+              >
+                Buka Kelola Materi
+              </Button>
+            </Link>
           </div>
         </div>
 
-        <div className="flex items-center gap-3 shrink-0">
-          <Link to="/admin/tema">
-            <Button
-              size="md"
-              variant="primary"
-              icon={<MaterialIcon name="arrow_forward" className="text-lg" />}
-            >
-              Buka Kelola Materi
-            </Button>
-          </Link>
+        <div className="bg-white rounded-2xl border border-[#E7E5E4] p-6 shadow-xs flex flex-col justify-between gap-4">
+          <div className="flex items-start gap-4 min-w-0">
+            <div className="w-12 h-12 rounded-xl bg-sky-50 text-sky-700 border border-sky-200/80 flex items-center justify-center shrink-0">
+              <MaterialIcon name="assignment_ind" className="text-2xl" />
+            </div>
+            <div>
+              <h2 className="font-duo-display text-lg font-bold text-stone-900 tracking-tight">
+                Rekap Aktivitas Belajar PJJ ({stats.totalPjjVideos || 0} Materi Aktif)
+              </h2>
+              <p className="text-xs sm:text-sm text-stone-600 mt-1 leading-relaxed">
+                Lihat catatan nama, kelas (TK A / TK B), serta apresiasi simbol <strong>Good</strong> dan <strong>Excellent</strong> khusus guru.
+              </p>
+            </div>
+          </div>
+
+          <div>
+            <Link to="/admin/rekap-pjj">
+              <Button
+                size="md"
+                variant="outline"
+                icon={<MaterialIcon name="lock" className="text-base text-sky-700" />}
+              >
+                Buka Rekap Belajar PJJ
+              </Button>
+            </Link>
+          </div>
         </div>
       </div>
 

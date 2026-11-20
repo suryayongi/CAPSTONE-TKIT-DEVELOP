@@ -1,6 +1,7 @@
 import React from 'react';
 import { NavLink, Link } from 'react-router-dom';
 import { Icon, MaterialIcon } from '../utils/icons';
+import { authService } from '../services/authService';
 
 export const AdminSidebar = ({
   isMobileOpen,
@@ -8,9 +9,16 @@ export const AdminSidebar = ({
   isCollapsed = false,
   onToggleCollapse
 }) => {
+  const currentUser = authService.getCurrentUser();
+  const isSuperAdmin = currentUser?.role === 'SUPER_ADMIN';
+
   const navItems = [
+    ...(isSuperAdmin
+      ? [{ to: '/admin/akun-guru', label: 'Kelola Akun Guru', icon: 'manage_accounts' }]
+      : []),
     { to: '/admin/dashboard', label: 'Beranda Studio', icon: 'space_dashboard' },
-    { to: '/admin/tema', label: 'Kelola Materi', icon: 'folder_special' },
+    { to: '/admin/tema', label: 'Bank Materi Bersama', icon: 'folder_special' },
+    { to: '/admin/rekap-pjj', label: 'Rekap Belajar PJJ', icon: 'assignment_ind' },
     { to: '/admin/pengaturan', label: 'Pengaturan Tampilan', icon: 'tune' }
   ];
 
@@ -42,7 +50,7 @@ export const AdminSidebar = ({
                   <span className="text-[#2D6A4F]">Madani</span>
                 </span>
                 <span className="text-[11px] font-bold text-slate-500 block mt-1 whitespace-nowrap">
-                  Ruang Studio Guru
+                  {isSuperAdmin ? 'Portal Super Admin' : 'Ruang Studio Guru'}
                 </span>
               </div>
             )}

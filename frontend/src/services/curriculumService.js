@@ -1,7 +1,11 @@
 import defaultCurriculum from '../data/defaultCurriculum.json' with { type: 'json' };
 import defaultSiteConfig from '../data/defaultSiteConfig.json' with { type: 'json' };
 import { storage } from './storage.js';
+import { authService } from './authService.js';
 import { extractYouTubeId, parseMMSSToSeconds, slugify } from '../utils/formatters.js';
+
+let remoteMode = 'unknown'; // 'postgres' | 'local_only' | 'unknown'
+let remoteSyncPromise = null;
 
 /**
  * Pastikan struktur data selalu menggunakan hirarki 3 level:
@@ -11,7 +15,6 @@ const normalizeCurriculum = (raw) => {
   if (!raw || !Array.isArray(raw.themes)) return null;
 
   raw.themes = raw.themes.map((theme, tIdx) => {
-    // Pastikan theme.id & slug selalu valid dan bukan 'undefined'
     let themeId = theme.id;
     if (!themeId || themeId === 'undefined' || themeId === 'null') {
       themeId = 'theme-' + slugify(theme.judul_tema || `tema-${tIdx + 1}`) + '-' + Date.now().toString().slice(-4);
@@ -31,23 +34,27 @@ const normalizeCurriculum = (raw) => {
       }
 
       if (Array.isArray(item.videos)) {
-        // Sudah format 3 level (Sub Tema memiliki daftar Video)
         const videos = item.videos.map((v, vIdx) => {
           let vidId = v.id;
           if (!vidId || vidId === 'undefined' || vidId === 'null') {
             vidId = 'vid-' + slugify(v.judul_video || v.judul_subtema || `video-${vIdx + 1}`) + '-' + Date.now().toString().slice(-4);
           }
-          const cuePoints = Array.isArray(v.cue_points) ? v.cue_points.map((cp, cpIdx) => {
-            let cpId = cp.id;
-            if (!cpId || cpId === 'undefined' || cpId === 'null') {
-              cpId = 'cp-' + (cpIdx + 1) + '-' + (cp.detik_muncul || 0);
-            }
-            return {
-              ...cp,
-              id: cpId,
-              detik_muncul: typeof cp.detik_muncul === 'number' ? cp.detik_muncul : parseMMSSToSeconds(cp.detik_muncul)
-            };
-          }) : [];
+          const cuePoints = Array.isArray(v.cue_points)
+            ? v.cue_points.map((cp, cpIdx) => {
+                let cpId = cp.id;
+                if (!cpId || cpId === 'undefined' || cpId === 'null') {
+                  cpId = 'cp-' + (cpIdx + 1) + '-' + (cp.detik_muncul || 0);
+                }
+                return {
+                  ...cp,
+                  id: cpId,
+                  detik_muncul:
+                    typeof cp.detik_muncul === 'number'
+                      ? cp.detik_muncul
+                      : parseMMSSToSeconds(cp.detik_muncul)
+                };
+              })
+            : [];
 
           return {
             ...v,
@@ -57,8 +64,17 @@ const normalizeCurriculum = (raw) => {
             judul_video: v.judul_video || v.judul_subtema || `Video ${vIdx + 1}`,
             judul_subtema: v.judul_video || v.judul_subtema || `Video ${vIdx + 1}`,
             label_episode: v.label_episode || `Video ${vIdx + 1}`,
-            jenis_lisensi: v.jenis_lisensi || v.lisensi_penggunaan || 'YouTube Standard License (Official IFrame Embed)',
-            deklarasi_ai: v.deklarasi_ai || v.ai_assistance_statement || 'Kuis interaktif disusun oleh Guru TKIT Al Madani.',
+            jenis_lisensi:
+              v.jenis_lisensi ||
+              v.lisensi_penggunaan ||
+              'YouTube Standard License (Official IFrame Embed)',
+            deklarasi_ai:
+              v.deklarasi_ai ||
+              v.ai_assistance_statement ||
+              'Kuis interaktif disusun oleh Guru TKIT Al Madani.',
+            is_pjj_enabled: Boolean(v.is_pjj_enabled),
+            pjj_notes: v.pjj_notes || '',
+            closing_game: v.closing_game || null,
             cue_points: cuePoints
           };
         });
@@ -73,7 +89,6 @@ const normalizeCurriculum = (raw) => {
           videos
         });
       } else if (item.youtube_video_id || item.youtube_url) {
-        // Migrasi otomatis dari format lama 2 level (item adalah video langsung)
         const groupId = `subtema-${subId}`;
         const videoId = `vid-${subId}`;
         const videoObj = {
@@ -83,9 +98,18 @@ const normalizeCurriculum = (raw) => {
           subtheme_id: groupId,
           judul_video: item.judul_video || item.judul_subtema || `Video ${sIdx + 1}`,
           judul_subtema: item.judul_video || item.judul_subtema || `Video ${sIdx + 1}`,
-          label_episode: item.label_episode || `Video 1`,
-          jenis_lisensi: item.jenis_lisensi || item.lisensi_penggunaan || 'YouTube Standard License (Official IFrame Embed)',
-          deklarasi_ai: item.deklarasi_ai || item.ai_assistance_statement || 'Kuis interaktif disusun oleh Guru TKIT Al Madani.',
+          label_episode: item.label_episode || 'Video 1',
+          jenis_lisensi:
+            item.jenis_lisensi ||
+            item.lisensi_penggunaan ||
+            'YouTube Standard License (Official IFrame Embed)',
+          deklarasi_ai:
+            item.deklarasi_ai ||
+            item.ai_assistance_statement ||
+            'Kuis interaktif disusun oleh Guru TKIT Al Madani.',
+          is_pjj_enabled: Boolean(item.is_pjj_enabled),
+          pjj_notes: item.pjj_notes || '',
+          closing_game: item.closing_game || null,
           cue_points: Array.isArray(item.cue_points) ? item.cue_points : []
         };
         normalizedSubthemes.push({
@@ -112,7 +136,7 @@ const normalizeCurriculum = (raw) => {
   return raw;
 };
 
-const getInitialData = () => {
+const getLocalData = () => {
   const saved = storage.get(storage.CURRICULUM_KEY);
   if (saved && Array.isArray(saved.themes)) {
     const normalized = normalizeCurriculum(saved);
@@ -124,7 +148,7 @@ const getInitialData = () => {
   return seed;
 };
 
-const getInitialConfig = () => {
+const getLocalConfig = () => {
   const saved = storage.get(storage.CONFIG_KEY);
   if (saved && typeof saved === 'object') {
     return { ...defaultSiteConfig, ...saved };
@@ -134,12 +158,116 @@ const getInitialConfig = () => {
   return seed;
 };
 
+const fetchRemoteCurriculum = async (force = false) => {
+  if (!force && remoteSyncPromise) {
+    return remoteSyncPromise;
+  }
+
+  remoteSyncPromise = (async () => {
+    try {
+      const res = await fetch('/api/curriculum', { cache: 'no-store' });
+      const contentType = res.headers.get('content-type') || '';
+      if (!res.ok || !contentType.includes('application/json')) {
+        if (res.status === 503) remoteMode = 'local_only';
+        return null;
+      }
+
+      const json = await res.json();
+      if (json.success && json.data) {
+        remoteMode = 'postgres';
+        const normalizedCur = normalizeCurriculum(json.data.curriculum);
+        const mergedCfg = { ...defaultSiteConfig, ...(json.data.siteConfig || {}) };
+        if (normalizedCur) {
+          storage.set(storage.CURRICULUM_KEY, normalizedCur);
+        }
+        storage.set(storage.CONFIG_KEY, mergedCfg);
+        return { curriculum: normalizedCur, siteConfig: mergedCfg };
+      }
+      return null;
+    } catch {
+      if (remoteMode === 'unknown') remoteMode = 'local_only';
+      return null;
+    } finally {
+      setTimeout(() => {
+        remoteSyncPromise = null;
+      }, 400);
+    }
+  })();
+
+  return remoteSyncPromise;
+};
+
+const postCurriculumMutation = async (action, payload) => {
+  const token = authService.getToken();
+  try {
+    const res = await fetch('/api/curriculum', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        ...(token ? { Authorization: `Bearer ${token}` } : {})
+      },
+      body: JSON.stringify({ action, payload })
+    });
+
+    const contentType = res.headers.get('content-type') || '';
+    if (!contentType.includes('application/json')) {
+      return { handled: false };
+    }
+
+    const json = await res.json();
+    if (res.status === 503 && json.mode === 'local_only') {
+      remoteMode = 'local_only';
+      return { handled: false };
+    }
+
+    if (res.status === 401) {
+      return {
+        handled: true,
+        result: {
+          success: false,
+          requiresAuth: true,
+          message: json.message || 'Sesi guru berakhir. Silakan login kembali.',
+          data: null
+        }
+      };
+    }
+
+    remoteMode = 'postgres';
+    // Segarkan cache lokal setelah mutasi Postgres sukses
+    await fetchRemoteCurriculum(true);
+    return { handled: true, result: json };
+  } catch {
+    return { handled: false };
+  }
+};
+
 export const curriculumService = {
+  getStorageMode() {
+    return remoteMode;
+  },
+
+  async checkDatabaseHealth() {
+    try {
+      const res = await fetch('/api/health', { cache: 'no-store' });
+      const contentType = res.headers.get('content-type') || '';
+      if (!contentType.includes('application/json')) {
+        return { mode: 'local_only', ok: true };
+      }
+      const json = await res.json();
+      remoteMode = json.mode === 'postgres' ? 'postgres' : 'local_only';
+      return json;
+    } catch {
+      remoteMode = 'local_only';
+      return { mode: 'local_only', ok: true };
+    }
+  },
+
   // ==========================================
-  // CONFIG / PENGATURAN TEKS SITUS
+  // CONFIG / PENGATURAN TEKS & KELAS PJJ
   // ==========================================
   async getSiteConfig() {
-    const config = getInitialConfig();
+    const remote = await fetchRemoteCurriculum();
+    const config = remote?.siteConfig || getLocalConfig();
     return {
       success: true,
       message: 'Berhasil memuat pengaturan tampilan',
@@ -148,7 +276,10 @@ export const curriculumService = {
   },
 
   async saveSiteConfig(newConfig) {
-    const current = getInitialConfig();
+    const mutated = await postCurriculumMutation('saveSiteConfig', newConfig);
+    if (mutated.handled) return mutated.result;
+
+    const current = getLocalConfig();
     const updated = { ...current, ...(newConfig || {}) };
     storage.set(storage.CONFIG_KEY, updated);
     return {
@@ -159,6 +290,9 @@ export const curriculumService = {
   },
 
   async resetSeedData() {
+    const mutated = await postCurriculumMutation('resetSeedData', {});
+    if (mutated.handled) return mutated.result;
+
     const seedCurriculum = normalizeCurriculum(JSON.parse(JSON.stringify(defaultCurriculum)));
     const seedConfig = JSON.parse(JSON.stringify(defaultSiteConfig));
     storage.set(storage.CURRICULUM_KEY, seedCurriculum);
@@ -174,8 +308,9 @@ export const curriculumService = {
   // LEVEL 1: TEMA (THEMES)
   // ==========================================
   async getThemes(onlyPublished = true) {
-    const cur = getInitialData();
-    let themes = cur.themes || [];
+    const remote = await fetchRemoteCurriculum();
+    const cur = remote?.curriculum || getLocalData();
+    let themes = [...(cur.themes || [])];
     if (onlyPublished) {
       themes = themes.filter((t) => t.status_publikasi === 'PUBLISHED');
     }
@@ -188,44 +323,37 @@ export const curriculumService = {
   },
 
   async getThemeBySlug(slug) {
-    const cur = getInitialData();
+    const remote = await fetchRemoteCurriculum();
+    const cur = remote?.curriculum || getLocalData();
     const theme = (cur.themes || []).find((t) => t.slug === slug || t.id === slug);
     if (!theme) {
-      return {
-        success: false,
-        message: 'Tema tidak ditemukan',
-        data: null
-      };
+      return { success: false, message: 'Tema tidak ditemukan', data: null };
     }
-    return {
-      success: true,
-      message: 'Berhasil memuat detail tema',
-      data: theme
-    };
+    return { success: true, message: 'Berhasil memuat detail tema', data: theme };
   },
 
   async getThemeById(themeId) {
-    const cur = getInitialData();
+    const remote = await fetchRemoteCurriculum();
+    const cur = remote?.curriculum || getLocalData();
     const theme = (cur.themes || []).find((t) => t.id === themeId || t.slug === themeId);
     if (!theme) {
-      return {
-        success: false,
-        message: 'Tema tidak ditemukan',
-        data: null
-      };
+      return { success: false, message: 'Tema tidak ditemukan', data: null };
     }
-    return {
-      success: true,
-      message: 'Berhasil memuat tema',
-      data: theme
-    };
+    return { success: true, message: 'Berhasil memuat tema', data: theme };
   },
 
   async saveTheme(themeData) {
-    const cur = getInitialData();
+    const mutated = await postCurriculumMutation('saveTheme', themeData);
+    if (mutated.handled) return mutated.result;
+
+    const cur = getLocalData();
     const themes = cur.themes || [];
     const isEdit = Boolean(themeData.id && themeData.id !== 'undefined');
     let targetId = isEdit ? themeData.id : null;
+
+    const actor = authService.getCurrentUser();
+    const actorId = actor?.id || null;
+    const actorName = actor?.nama_lengkap || '';
 
     if (isEdit) {
       const idx = themes.findIndex((t) => t.id === targetId || t.slug === targetId);
@@ -238,6 +366,7 @@ export const curriculumService = {
         ...themeData,
         id: targetId,
         slug: themeData.slug || slugify(themeData.judul_tema || themes[idx].judul_tema),
+        updated_by_name: actorName || themes[idx].updated_by_name || '',
         updated_at: new Date().toISOString()
       };
     } else {
@@ -250,6 +379,9 @@ export const curriculumService = {
         ...cleanData,
         id: targetId,
         slug: slugify(themeData.judul_tema || targetId),
+        created_by_id: actorId,
+        created_by_name: actorName,
+        updated_by_name: actorName,
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString()
       };
@@ -267,28 +399,33 @@ export const curriculumService = {
   },
 
   async deleteTheme(themeId) {
-    const cur = getInitialData();
+    const mutated = await postCurriculumMutation('deleteTheme', { themeId });
+    if (mutated.handled) return mutated.result;
+
+    const cur = getLocalData();
     cur.themes = (cur.themes || []).filter((t) => t.id !== themeId && t.slug !== themeId);
     cur.updated_at = new Date().toISOString();
     storage.set(storage.CURRICULUM_KEY, cur);
-    return {
-      success: true,
-      message: 'Tema berhasil dihapus!',
-      data: { id: themeId }
-    };
+    return { success: true, message: 'Tema berhasil dihapus!', data: { id: themeId } };
   },
 
   // ==========================================
   // LEVEL 2: SUB TEMA (SUBTHEME GROUPS)
   // ==========================================
   async saveSubthemeGroup(themeId, groupData) {
-    const cur = getInitialData();
+    const mutated = await postCurriculumMutation('saveSubthemeGroup', { themeId, groupData });
+    if (mutated.handled) return mutated.result;
+
+    const cur = getLocalData();
     const theme = (cur.themes || []).find((t) => t.id === themeId || t.slug === themeId);
     if (!theme) {
       return { success: false, message: 'Tema tidak ditemukan', data: null };
     }
     if (!Array.isArray(theme.subthemes)) theme.subthemes = [];
 
+    const actor = authService.getCurrentUser();
+    const actorId = actor?.id || null;
+    const actorName = actor?.nama_lengkap || '';
     const isEdit = Boolean(groupData.id && groupData.id !== 'undefined');
     let targetGroupId = isEdit ? groupData.id : null;
 
@@ -304,6 +441,7 @@ export const curriculumService = {
         judul_subtema: groupData.judul_subtema,
         deskripsi_subtema: groupData.deskripsi_subtema || '',
         urutan: groupData.urutan || theme.subthemes[idx].urutan || idx + 1,
+        updated_by_name: actorName || theme.subthemes[idx].updated_by_name || '',
         updated_at: new Date().toISOString()
       };
     } else {
@@ -317,6 +455,9 @@ export const curriculumService = {
         theme_id: theme.id,
         judul_subtema: groupData.judul_subtema,
         deskripsi_subtema: groupData.deskripsi_subtema || '',
+        created_by_id: actorId,
+        created_by_name: actorName,
+        updated_by_name: actorName,
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString()
       };
@@ -334,7 +475,10 @@ export const curriculumService = {
   },
 
   async deleteSubthemeGroup(themeId, groupId) {
-    const cur = getInitialData();
+    const mutated = await postCurriculumMutation('deleteSubthemeGroup', { themeId, groupId });
+    if (mutated.handled) return mutated.result;
+
+    const cur = getLocalData();
     const theme = (cur.themes || []).find((t) => t.id === themeId || t.slug === themeId);
     if (!theme) {
       return { success: false, message: 'Tema tidak ditemukan', data: null };
@@ -353,10 +497,13 @@ export const curriculumService = {
   // LEVEL 3: VIDEO PEMBELAJARAN (VIDEOS)
   // ==========================================
   async getSubthemeById(videoId) {
-    const cur = getInitialData();
+    const remote = await fetchRemoteCurriculum();
+    const cur = remote?.curriculum || getLocalData();
     for (const theme of cur.themes || []) {
       for (const subGroup of theme.subthemes || []) {
-        const foundVideo = (subGroup.videos || []).find((v) => v.id === videoId || v.slug === videoId);
+        const foundVideo = (subGroup.videos || []).find(
+          (v) => v.id === videoId || v.slug === videoId
+        );
         if (foundVideo) {
           return {
             success: true,
@@ -371,20 +518,18 @@ export const curriculumService = {
         }
       }
     }
-    return {
-      success: false,
-      message: 'Video pembelajaran tidak ditemukan',
-      data: null
-    };
+    return { success: false, message: 'Video pembelajaran tidak ditemukan', data: null };
   },
 
   async saveSubtheme(themeId, videoData) {
-    const cur = getInitialData();
+    const mutated = await postCurriculumMutation('saveVideo', { themeId, videoData });
+    if (mutated.handled) return mutated.result;
+
+    const cur = getLocalData();
     const theme = (cur.themes || []).find((t) => t.id === themeId || t.slug === themeId);
     if (!theme) {
       return { success: false, message: 'Tema induk tidak ditemukan', data: null };
     }
-
     if (!Array.isArray(theme.subthemes)) theme.subthemes = [];
 
     const ytId = extractYouTubeId(videoData.youtube_url);
@@ -392,11 +537,9 @@ export const curriculumService = {
       return { success: false, message: 'Tautan YouTube belum valid!', data: null };
     }
 
-    // Tentukan Sub Tema tujuan (subtheme_id)
     let targetGroupId = videoData.subtheme_id;
     let targetGroup = (theme.subthemes || []).find((g) => g.id === targetGroupId);
 
-    // Jika belum ada Sub Tema sama sekali di Tema ini, buatkan Sub Tema otomatis
     if (!targetGroup) {
       if (theme.subthemes.length > 0) {
         targetGroup = theme.subthemes[0];
@@ -429,12 +572,23 @@ export const curriculumService = {
       judul_video: videoTitle,
       judul_subtema: videoTitle,
       youtube_video_id: ytId,
-      jenis_lisensi: videoData.jenis_lisensi || videoData.lisensi_penggunaan || 'YouTube Standard License (Official IFrame Embed)',
-      deklarasi_ai: videoData.deklarasi_ai || videoData.ai_assistance_statement || 'Pertanyaan kuis disusun oleh Guru TKIT Al Madani.'
+      jenis_lisensi:
+        videoData.jenis_lisensi ||
+        videoData.lisensi_penggunaan ||
+        'YouTube Standard License (Official IFrame Embed)',
+      deklarasi_ai:
+        videoData.deklarasi_ai ||
+        videoData.ai_assistance_statement ||
+        'Pertanyaan kuis disusun oleh Guru TKIT Al Madani.',
+      is_pjj_enabled: Boolean(videoData.is_pjj_enabled),
+      pjj_notes: videoData.pjj_notes || ''
     };
 
+    const actor = authService.getCurrentUser();
+    const actorId = actor?.id || null;
+    const actorName = actor?.nama_lengkap || '';
+
     if (isEdit) {
-      // Cari video lama di seluruh subtema dalam tema ini (jika guru memindahkan video ke Sub Tema lain)
       let existingVideo = null;
       for (const g of theme.subthemes) {
         const idx = (g.videos || []).findIndex((v) => v.id === targetVideoId);
@@ -447,6 +601,7 @@ export const curriculumService = {
               ...existingVideo,
               ...normalizedPayload,
               id: targetVideoId,
+              updated_by_name: actorName || existingVideo.updated_by_name || '',
               updated_at: new Date().toISOString()
             };
           }
@@ -458,12 +613,12 @@ export const curriculumService = {
         return { success: false, message: 'Video tidak ditemukan untuk diperbarui', data: null };
       }
 
-      // Jika dipindah ke Sub Tema baru
       if (!targetGroup.videos.some((v) => v.id === targetVideoId)) {
         targetGroup.videos.push({
           ...existingVideo,
           ...normalizedPayload,
           id: targetVideoId,
+          updated_by_name: actorName || existingVideo.updated_by_name || '',
           updated_at: new Date().toISOString()
         });
       }
@@ -474,8 +629,12 @@ export const curriculumService = {
         label_episode: normalizedPayload.label_episode || `Video ${targetGroup.videos.length + 1}`,
         status_publikasi: 'PUBLISHED',
         cue_points: [],
+        closing_game: null,
         ...normalizedPayload,
         id: targetVideoId,
+        created_by_id: actorId,
+        created_by_name: actorName,
+        updated_by_name: actorName,
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString()
       };
@@ -488,13 +647,18 @@ export const curriculumService = {
     const savedVideo = targetGroup.videos.find((v) => v.id === targetVideoId);
     return {
       success: true,
-      message: isEdit ? 'Video pembelajaran berhasil diperbarui!' : 'Video pembelajaran baru berhasil ditambahkan!',
+      message: isEdit
+        ? 'Video pembelajaran berhasil diperbarui!'
+        : 'Video pembelajaran baru berhasil ditambahkan!',
       data: savedVideo
     };
   },
 
   async deleteSubtheme(videoId) {
-    const cur = getInitialData();
+    const mutated = await postCurriculumMutation('deleteVideo', { videoId });
+    if (mutated.handled) return mutated.result;
+
+    const cur = getLocalData();
     let deleted = false;
     for (const theme of cur.themes || []) {
       for (const group of theme.subthemes || []) {
@@ -514,10 +678,44 @@ export const curriculumService = {
 
     cur.updated_at = new Date().toISOString();
     storage.set(storage.CURRICULUM_KEY, cur);
+    return { success: true, message: 'Video pembelajaran berhasil dihapus!', data: { id: videoId } };
+  },
+
+  async saveClosingGame(videoId, { closingGame, isPjjEnabled, pjjNotes }) {
+    const mutated = await postCurriculumMutation('saveClosingGame', {
+      videoId,
+      closingGame,
+      isPjjEnabled,
+      pjjNotes
+    });
+    if (mutated.handled) return mutated.result;
+
+    const cur = getLocalData();
+    let targetVideo = null;
+    for (const theme of cur.themes || []) {
+      for (const group of theme.subthemes || []) {
+        targetVideo = (group.videos || []).find((v) => v.id === videoId);
+        if (targetVideo) break;
+      }
+      if (targetVideo) break;
+    }
+
+    if (!targetVideo) {
+      return { success: false, message: 'Video tidak ditemukan', data: null };
+    }
+
+    if (closingGame !== undefined) targetVideo.closing_game = closingGame;
+    if (isPjjEnabled !== undefined) targetVideo.is_pjj_enabled = Boolean(isPjjEnabled);
+    if (pjjNotes !== undefined) targetVideo.pjj_notes = pjjNotes;
+    targetVideo.updated_at = new Date().toISOString();
+
+    cur.updated_at = new Date().toISOString();
+    storage.set(storage.CURRICULUM_KEY, cur);
+
     return {
       success: true,
-      message: 'Video pembelajaran berhasil dihapus!',
-      data: { id: videoId }
+      message: 'Pengaturan penutup akhir video dan PJJ berhasil disimpan.',
+      data: targetVideo
     };
   },
 
@@ -525,7 +723,10 @@ export const curriculumService = {
   // CUE POINTS (TITIK KUIS DI DALAM VIDEO)
   // ==========================================
   async saveCuePoint(videoId, cuePointData) {
-    const cur = getInitialData();
+    const mutated = await postCurriculumMutation('saveCuePoint', { videoId, cuePointData });
+    if (mutated.handled) return mutated.result;
+
+    const cur = getLocalData();
     let targetVideo = null;
     for (const theme of cur.themes || []) {
       for (const group of theme.subthemes || []) {
@@ -578,13 +779,18 @@ export const curriculumService = {
 
     return {
       success: true,
-      message: isEdit ? 'Pertanyaan kuis berhasil diperbarui!' : 'Pertanyaan kuis baru berhasil ditambahkan!',
+      message: isEdit
+        ? 'Pertanyaan kuis berhasil diperbarui!'
+        : 'Pertanyaan kuis baru berhasil ditambahkan!',
       data: targetVideo.cue_points.find((c) => c.id === targetCpId)
     };
   },
 
   async deleteCuePoint(videoId, cuePointId) {
-    const cur = getInitialData();
+    const mutated = await postCurriculumMutation('deleteCuePoint', { videoId, cuePointId });
+    if (mutated.handled) return mutated.result;
+
+    const cur = getLocalData();
     let targetVideo = null;
     for (const theme of cur.themes || []) {
       for (const group of theme.subthemes || []) {
@@ -613,11 +819,13 @@ export const curriculumService = {
   // STATS (BERANDA STUDIO GURU)
   // ==========================================
   async getStats() {
-    const cur = getInitialData();
+    const remote = await fetchRemoteCurriculum();
+    const cur = remote?.curriculum || getLocalData();
     const themes = cur.themes || [];
     let totalSubthemeGroups = 0;
     let totalVideos = 0;
     let totalCuePoints = 0;
+    let totalPjjVideos = 0;
 
     themes.forEach((t) => {
       const groups = t.subthemes || [];
@@ -627,6 +835,7 @@ export const curriculumService = {
         totalVideos += videos.length;
         videos.forEach((v) => {
           totalCuePoints += (v.cue_points || []).length;
+          if (v.is_pjj_enabled) totalPjjVideos += 1;
         });
       });
     });
@@ -640,6 +849,8 @@ export const curriculumService = {
         totalVideos,
         totalSubthemes: totalVideos,
         totalCuePoints,
+        totalPjjVideos,
+        storageMode: remoteMode,
         schoolName: cur.school_name || 'TKIT Al Madani',
         lastUpdated: cur.updated_at || new Date().toISOString()
       }
@@ -650,11 +861,11 @@ export const curriculumService = {
   // SIMPAN & MUAT CADANGAN MATERI
   // ==========================================
   exportCurriculumJson() {
-    const cur = getInitialData();
-    const cfg = getInitialConfig();
+    const cur = getLocalData();
+    const cfg = getLocalConfig();
     const backup = {
       app: 'DuniaMadani',
-      version: '3.0',
+      version: '3.1',
       exported_at: new Date().toISOString(),
       config: cfg,
       curriculum: cur
@@ -671,21 +882,30 @@ export const curriculumService = {
     return { success: true, message: 'Cadangan materi berhasil disimpan ke komputer!' };
   },
 
-  importCurriculumJson(jsonString) {
+  async importCurriculumJson(jsonString) {
     try {
       const data = JSON.parse(jsonString);
-      if (data.curriculum && Array.isArray(data.curriculum.themes)) {
-        storage.set(storage.CURRICULUM_KEY, normalizeCurriculum(data.curriculum));
-        if (data.config && typeof data.config === 'object') {
-          storage.set(storage.CONFIG_KEY, data.config);
-        }
-        return { success: true, message: 'Alhamdulillah, data cadangan materi berhasil dimuat!' };
-      } else if (Array.isArray(data.themes)) {
-        storage.set(storage.CURRICULUM_KEY, normalizeCurriculum(data));
-        return { success: true, message: 'Alhamdulillah, daftar materi berhasil dimuat!' };
-      } else {
+      const curriculum = data.curriculum && Array.isArray(data.curriculum.themes)
+        ? normalizeCurriculum(data.curriculum)
+        : Array.isArray(data.themes)
+        ? normalizeCurriculum(data)
+        : null;
+
+      if (!curriculum) {
         return { success: false, message: 'Berkas cadangan yang dipilih tidak sesuai.' };
       }
+
+      const mutated = await postCurriculumMutation('importBackup', {
+        curriculum,
+        config: data.config
+      });
+      if (mutated.handled) return mutated.result;
+
+      storage.set(storage.CURRICULUM_KEY, curriculum);
+      if (data.config && typeof data.config === 'object') {
+        storage.set(storage.CONFIG_KEY, data.config);
+      }
+      return { success: true, message: 'Alhamdulillah, data cadangan materi berhasil dimuat!' };
     } catch {
       return { success: false, message: 'Gagal membaca berkas cadangan materi.' };
     }
