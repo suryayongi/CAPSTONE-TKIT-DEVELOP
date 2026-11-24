@@ -1,0 +1,78 @@
+{
+  "classes": ["A1", "A2", "A3", "B1", "B2", "B3", "B4"],
+  "legacySeedIds": ["usr-guru-hilmy", "usr-guru-tka", "usr-guru-tkb", "usr-guru-01"],
+  "teachers": [
+    {
+      "id": "usr-guru-a1-salza",
+      "username": "salza",
+      "nama_lengkap": "Salza Arriva Supardi",
+      "kelas": "A1"
+    },
+    {
+      "id": "usr-guru-a1-leli",
+      "username": "leli",
+      "nama_lengkap": "Leli Putri Stalstah",
+      "kelas": "A1"
+    },
+    {
+      "id": "usr-guru-a2-linda",
+      "username": "linda",
+      "nama_lengkap": "Linda Amalia Septiani",
+      "kelas": "A2"
+    },
+    {
+      "id": "usr-guru-a2-arini",
+      "username": "arini",
+      "nama_lengkap": "Arini Ahya Razaq",
+      "kelas": "A2"
+    },
+    {
+      "id": "usr-guru-a3-rinrin",
+      "username": "rinrin",
+      "nama_lengkap": "Rinrin Khairunnisa",
+      "kelas": "A3"
+    },
+    {
+      "id": "usr-guru-a3-elvira",
+      "username": "elvira",
+      "nama_lengkap": "Elvira Hisni Sopia",
+      "kelas": "A3"
+    },
+    {
+      "id": "usr-guru-b1-leni",
+      "username": "leni",
+      "nama_lengkap": "Leni Siti Mulyani",
+      "kelas": "B1"
+    },
+    {
+      "id": "usr-guru-b1-meilani",
+      "username": "meilani",
+      "nama_lengkap": "Meilani Nur Islami",
+      "kelas": "B1"
+    },
+    {
+      "id": "usr-guru-b2-yulia",
+      "username": "yulia",
+      "nama_lengkap": "Yulia Agustina",
+      "kelas": "B2"
+    },
+    {
+      "id": "usr-guru-b3-ghina",
+      "username": "ghina",
+      "nama_lengkap": "Ghina Amelia Hasni",
+      "kelas": "B3"
+    },
+    {
+      "id": "usr-guru-b3-sania",
+      "username": "sania",
+      "nama_lengkap": "Sania Suci Astiati",
+      "kelas": "B3"
+    },
+    {
+      "id": "usr-guru-b4-lola",
+      "username": "lola",
+      "nama_lengkap": "Lola Dwi Nur Isnaini",
+      "kelas": "B4"
+    }
+  ]
+}

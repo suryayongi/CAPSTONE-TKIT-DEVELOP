@@ -1,4 +1,27 @@
 import crypto from 'node:crypto';
+import fs from 'node:fs';
+import path from 'node:path';
+import { createRequire } from 'node:module';
+
+const require = createRequire(import.meta.url);
+
+export const loadStarterRoster = () => {
+  try {
+    return structuredClone(require('../src/data/starterTeachers.json'));
+  } catch {
+    const candidates = [
+      new URL('../src/data/starterTeachers.json', import.meta.url),
+      path.join(process.cwd(), 'src', 'data', 'starterTeachers.json'),
+      path.join(process.cwd(), 'frontend', 'src', 'data', 'starterTeachers.json')
+    ];
+    for (const p of candidates) {
+      if (fs.existsSync(p)) {
+        return JSON.parse(fs.readFileSync(p, 'utf8'));
+      }
+    }
+    throw new Error('Tidak dapat menemukan data starterTeachers.json');
+  }
+};
 
 const getSecret = () =>
   process.env.AUTH_SECRET ||
@@ -44,53 +67,32 @@ export const verifyPassword = (plainPassword, storedHash) => {
   }
 };
 
-export const getStarterUsersSeed = () => [
-  {
-    id: 'usr-superadmin-01',
-    username: 'superadmin',
-    nama_lengkap: 'Super Admin TKIT Al Madani',
-    role: 'SUPER_ADMIN',
-    jabatan_kelas: 'Administrator Sekolah',
-    plain_password: process.env.SUPERADMIN_PASSWORD || 'supermadani123',
-    is_active: true
-  },
-  {
-    id: 'usr-guru-hilmy',
-    username: 'hilmy',
-    nama_lengkap: 'Ibu Hilmy Azimah, M.Pd.',
-    role: 'GURU',
-    jabatan_kelas: 'Guru',
-    plain_password: 'madani123',
-    is_active: true
-  },
-  {
-    id: 'usr-guru-tka',
-    username: 'gurutka',
-    nama_lengkap: 'Ibu Guru TK A',
-    role: 'GURU',
-    jabatan_kelas: 'Guru',
-    plain_password: 'madani123',
-    is_active: true
-  },
-  {
-    id: 'usr-guru-tkb',
-    username: 'gurutkb',
-    nama_lengkap: 'Ibu Guru TK B',
-    role: 'GURU',
-    jabatan_kelas: 'Guru',
-    plain_password: 'madani123',
-    is_active: true
-  },
-  {
-    id: 'usr-guru-01',
-    username: 'guru',
-    nama_lengkap: 'Guru TKIT Al Madani',
-    role: 'GURU',
-    jabatan_kelas: 'Guru',
-    plain_password: process.env.TEACHER_PASSWORD || 'madani123',
-    is_active: true
-  }
-];
+export const getStarterUsersSeed = () => {
+  const roster = loadStarterRoster();
+  const defaultTeacherPass = process.env.TEACHER_PASSWORD || 'madani123';
+  const teachers = Array.isArray(roster?.teachers) ? roster.teachers : [];
+
+  return [
+    {
+      id: 'usr-superadmin-01',
+      username: 'superadmin',
+      nama_lengkap: 'Super Admin TKIT Al Madani',
+      role: 'SUPER_ADMIN',
+      jabatan_kelas: 'Administrator Sekolah',
+      plain_password: process.env.SUPERADMIN_PASSWORD || 'supermadani123',
+      is_active: true
+    },
+    ...teachers.map((t) => ({
+      id: t.id,
+      username: t.username,
+      nama_lengkap: t.nama_lengkap,
+      role: 'GURU',
+      jabatan_kelas: t.kelas ? `Kelas ${t.kelas}` : 'Guru',
+      plain_password: defaultTeacherPass,
+      is_active: true
+    }))
+  ];
+};
 
 export const signTeacherToken = (user) => {
   const payload = {

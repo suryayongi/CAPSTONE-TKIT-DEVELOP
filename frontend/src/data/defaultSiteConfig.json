@@ -19,6 +19,6 @@
   "celebration_finish_btn": "Selesai & Kembali ke Materi",
   "default_wrong_feedback": "Hampir tepat, ayo kita amati lagi dan pilih jawaban lainnya bersama Ibu Guru.",
   "pjj_class_input_mode": "TEXT",
-  "pjj_classes": ["TK A", "TK B"],
+  "pjj_classes": ["A1", "A2", "A3", "B1", "B2", "B3", "B4"],
   "pjj_form_note": "Catatan Khusus PJJ: Isian nama dan kelas ini ditujukan bagi siswa yang belajar dari rumah (PJJ). Untuk belajar di kelas, Ibu Guru dapat menonaktifkannya di Studio."
 }

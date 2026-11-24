@@ -14,9 +14,13 @@ export const AdminHeader = ({
     nama_lengkap: 'Guru TKIT Al Madani',
     username: 'guru',
     role: 'GURU',
-    jabatan_kelas: 'Guru Pengelola Materi'
+    jabatan_kelas: 'Guru'
   };
   const isSuperAdmin = user.role === 'SUPER_ADMIN';
+  const teacherSubtitle =
+    user.jabatan_kelas && user.jabatan_kelas.toLowerCase() !== 'guru'
+      ? `Guru • ${user.jabatan_kelas}`
+      : 'Guru';
 
   const handleLogout = () => {
     if (window.confirm('Keluar dari Ruang Studio?')) {
@@ -86,7 +90,7 @@ export const AdminHeader = ({
                 isSuperAdmin ? 'text-amber-700' : 'text-[#10B981]'
               }`}
             >
-              {isSuperAdmin ? 'Super Admin' : user.jabatan_kelas || 'Guru'}
+              {isSuperAdmin ? 'Super Admin' : teacherSubtitle}
             </span>
           </div>
         </div>

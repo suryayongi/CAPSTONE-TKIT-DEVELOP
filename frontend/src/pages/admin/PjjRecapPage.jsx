@@ -13,6 +13,7 @@ import { pjjService } from '../../services/pjjService';
 import { curriculumService } from '../../services/curriculumService';
 import { authService } from '../../services/authService';
 import { PREDICATE_META } from '../../utils/closingGame';
+import starterRoster from '../../data/starterTeachers.json';
 
 export const PjjRecapPage = () => {
   const navigate = useNavigate();
@@ -52,7 +53,7 @@ export const PjjRecapPage = () => {
   const dataSource = recordsRes?.source || 'local';
 
   const classOptions = useMemo(() => {
-    const base = Array.isArray(siteConfig.pjj_classes) ? siteConfig.pjj_classes : ['TK A', 'TK B'];
+    const base = Array.isArray(siteConfig.pjj_classes) ? siteConfig.pjj_classes : starterRoster.classes;
     const dynamic = allRecords.map((r) => r.class_name).filter(Boolean);
     return Array.from(new Set([...base, ...dynamic]));
   }, [siteConfig.pjj_classes, allRecords]);

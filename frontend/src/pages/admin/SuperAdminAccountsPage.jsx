@@ -12,8 +12,15 @@ import { MaterialIcon } from '../../utils/icons';
 import { userService } from '../../services/userService';
 import { curriculumService } from '../../services/curriculumService';
 import { authService } from '../../services/authService';
+import starterRoster from '../../data/starterTeachers.json';
 
 const USERNAME_RE = /^[a-z0-9._-]{3,32}$/;
+const CLASS_PLOTS = starterRoster.classes;
+
+const extractClassCode = (jabatan) => {
+  const match = String(jabatan || '').toUpperCase().match(/\b(A[1-3]|B[1-4])\b/);
+  return match ? match[1] : '';
+};
 
 const slugifyUsername = (name) =>
   String(name || '')
@@ -53,6 +60,7 @@ export const SuperAdminAccountsPage = () => {
   // State Filter Daftar Akun
   const [searchTerm, setSearchTerm] = useState('');
   const [roleFilter, setRoleFilter] = useState('ALL');
+  const [classFilter, setClassFilter] = useState('ALL');
 
   // State Native <dialog> Reset Kata Sandi
   const [resetTargetUser, setResetTargetUser] = useState(null);
@@ -105,10 +113,20 @@ export const SuperAdminAccountsPage = () => {
   const activeTeachersCount = allUsers.filter((u) => u.is_active).length;
   const inactiveCount = allUsers.filter((u) => !u.is_active).length;
 
+  const classPlottingGroups = useMemo(() => {
+    const teachersOnly = allUsers.filter((u) => u.role !== 'SUPER_ADMIN');
+    return CLASS_PLOTS.map((cls) => ({
+      code: cls,
+      label: `Kelas ${cls}`,
+      members: teachersOnly.filter((u) => extractClassCode(u.jabatan_kelas) === cls)
+    }));
+  }, [allUsers]);
+
   const filteredUsers = useMemo(() => {
     const q = searchTerm.trim().toLowerCase();
     return allUsers.filter((u) => {
       if (roleFilter !== 'ALL' && u.role !== roleFilter) return false;
+      if (classFilter !== 'ALL' && extractClassCode(u.jabatan_kelas) !== classFilter) return false;
       if (q) {
         const matchName = (u.nama_lengkap || '').toLowerCase().includes(q);
         const matchUser = (u.username || '').toLowerCase().includes(q);
@@ -117,7 +135,7 @@ export const SuperAdminAccountsPage = () => {
       }
       return true;
     });
-  }, [allUsers, roleFilter, searchTerm]);
+  }, [allUsers, roleFilter, classFilter, searchTerm]);
 
   // Sinkronisasi native <dialog> showModal() untuk Reset Kata Sandi
   useEffect(() => {
@@ -173,11 +191,12 @@ export const SuperAdminAccountsPage = () => {
       return;
     }
 
+    const cleanJabatan = jabatanKelas.trim() || 'Guru';
     setIsCreating(true);
     const res = await userService.createUser({
       nama_lengkap: cleanName,
       username: cleanUser,
-      jabatan_kelas: jabatanKelas.trim() || 'Guru',
+      jabatan_kelas: cleanJabatan,
       role,
       password: cleanPass
     });
@@ -192,6 +211,7 @@ export const SuperAdminAccountsPage = () => {
       nama_lengkap: cleanName,
       username: cleanUser,
       password: cleanPass,
+      jabatan_kelas: cleanJabatan,
       role
     });
 
@@ -207,7 +227,8 @@ export const SuperAdminAccountsPage = () => {
   };
 
   const handleCopyCredentials = async (creds) => {
-    const text = `Akun Dunia Madani\nNama: ${creds.nama_lengkap}\nUsername: ${creds.username}\nKata Sandi: ${creds.password}`;
+    const classLine = creds.jabatan_kelas ? `\nPlotting Kelas: ${creds.jabatan_kelas}` : '';
+    const text = `Akun Dunia Madani\nNama: ${creds.nama_lengkap}\nUsername: ${creds.username}${classLine}\nKata Sandi: ${creds.password}`;
     try {
       await navigator.clipboard.writeText(text);
       showToast('Info login disalin ke clipboard.', 'success');
@@ -420,6 +441,83 @@ export const SuperAdminAccountsPage = () => {
         </div>
       </div>
 
+      {/* Ringkasan Plottingan Kelas Guru (A1 - B4) */}
+      <section
+        aria-labelledby="plotting-kelas-heading"
+        className="bg-white border border-slate-200 rounded-2xl p-4 sm:p-5 mb-6 space-y-3"
+      >
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+          <div>
+            <h2
+              id="plotting-kelas-heading"
+              className="font-duo-display text-base sm:text-lg font-bold text-slate-800 flex items-center gap-2"
+            >
+              <MaterialIcon name="view_cozy" className="text-xl text-emerald-700" />
+              <span>Plottingan Kelas Guru TKIT Al Madani (A1 – B4)</span>
+            </h2>
+            <p className="text-xs font-medium text-slate-500 mt-0.5">
+              Ketuk salah satu kelas untuk menyaring daftar akun guru pada kelas tersebut.
+            </p>
+          </div>
+          {classFilter !== 'ALL' && (
+            <button
+              type="button"
+              onClick={() => setClassFilter('ALL')}
+              className="self-start sm:self-auto px-3 py-1.5 rounded-lg border border-slate-200 bg-slate-50 hover:bg-slate-100 text-xs font-semibold text-slate-700 cursor-pointer"
+            >
+              Tampilkan Semua Kelas
+            </button>
+          )}
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+          {classPlottingGroups.map((grp) => {
+            const isSelected = classFilter === grp.code;
+            const isGroupA = grp.code.startsWith('A');
+            return (
+              <button
+                key={grp.code}
+                type="button"
+                aria-pressed={isSelected}
+                onClick={() => setClassFilter((prev) => (prev === grp.code ? 'ALL' : grp.code))}
+                className={`text-left p-3.5 rounded-xl border transition-colors cursor-pointer flex flex-col justify-between gap-2 min-h-[88px] ${
+                  isSelected
+                    ? 'bg-emerald-50 border-emerald-500 ring-2 ring-emerald-500/20'
+                    : 'bg-slate-50/70 border-slate-200 hover:bg-white hover:border-slate-300'
+                }`}
+              >
+                <div className="flex items-center justify-between gap-2 w-full">
+                  <span
+                    className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-lg border text-xs font-bold ${
+                      isGroupA
+                        ? 'bg-sky-50 text-sky-800 border-sky-200'
+                        : 'bg-emerald-50 text-emerald-800 border-emerald-200'
+                    }`}
+                  >
+                    <MaterialIcon name="meeting_room" className="text-sm" />
+                    <span>{grp.label}</span>
+                  </span>
+                  <span className="font-mono text-xs font-semibold text-slate-500">
+                    {grp.members.length} Guru
+                  </span>
+                </div>
+                <div className="text-xs font-medium text-slate-700 leading-snug">
+                  {grp.members.length > 0 ? (
+                    grp.members.map((m) => (
+                      <div key={m.id} className="truncate">
+                        • {m.nama_lengkap}
+                      </div>
+                    ))
+                  ) : (
+                    <span className="text-slate-400 italic">Belum ada guru diplotting</span>
+                  )}
+                </div>
+              </button>
+            );
+          })}
+        </div>
+      </section>
+
       {/* Konten Utama 2 Kolom: Tambah Akun (Kiri) + Daftar Akun (Kanan) */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
         {/* KOLOM KIRI: Formulir Penambahan Akun Guru & Password */}
@@ -458,6 +556,9 @@ export const SuperAdminAccountsPage = () => {
               </div>
               <div className="text-xs space-y-1 bg-white/90 border border-emerald-200/80 rounded-lg p-3 font-medium">
                 <div>Nama: <strong>{lastCreatedCreds.nama_lengkap}</strong></div>
+                {lastCreatedCreds.jabatan_kelas && (
+                  <div>Plotting Kelas: <strong>{lastCreatedCreds.jabatan_kelas}</strong></div>
+                )}
                 <div>Username: <code className="font-mono text-slate-900">{lastCreatedCreds.username}</code></div>
                 <div>Kata Sandi: <code className="font-mono text-slate-900">{lastCreatedCreds.password}</code></div>
               </div>
@@ -538,18 +639,25 @@ export const SuperAdminAccountsPage = () => {
 
             <div className="space-y-1.5">
               <label htmlFor="create-jabatan" className="block text-sm font-semibold text-slate-700">
-                Peran / Keterangan Akun
+                Plotting Kelas / Keterangan
               </label>
               <input
                 id="create-jabatan"
                 name="jabatan_kelas"
                 type="text"
+                list="plotting-kelas-options"
                 maxLength={80}
                 value={jabatanKelas}
                 onChange={(e) => setJabatanKelas(e.target.value)}
-                placeholder="Contoh: Guru"
+                placeholder="Pilih atau ketik (misal: Kelas A1)"
                 className="pjj-field-control w-full px-3.5 py-2.5 rounded-xl bg-slate-50 border border-slate-300 text-slate-900 focus:outline-none focus:bg-white focus:border-emerald-600"
               />
+              <datalist id="plotting-kelas-options">
+                {CLASS_PLOTS.map((cls) => (
+                  <option key={cls} value={`Kelas ${cls}`} />
+                ))}
+                <option value="Guru" />
+              </datalist>
             </div>
 
             <fieldset className="space-y-2">
@@ -680,7 +788,26 @@ export const SuperAdminAccountsPage = () => {
               />
             </div>
 
-            <div className="w-full sm:w-44 flex flex-col gap-1 shrink-0">
+            <div className="w-full sm:w-36 flex flex-col gap-1 shrink-0">
+              <label htmlFor="accounts-class-filter" className="text-xs font-semibold text-slate-600">
+                Filter Kelas
+              </label>
+              <select
+                id="accounts-class-filter"
+                value={classFilter}
+                onChange={(e) => setClassFilter(e.target.value)}
+                className="w-full h-11 px-3 text-sm font-medium text-slate-800 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:bg-white focus:border-emerald-600"
+              >
+                <option value="ALL">Semua Kelas</option>
+                {CLASS_PLOTS.map((cls) => (
+                  <option key={cls} value={cls}>
+                    Kelas {cls}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div className="w-full sm:w-40 flex flex-col gap-1 shrink-0">
               <label htmlFor="accounts-role-filter" className="text-xs font-semibold text-slate-600">
                 Filter Peran
               </label>
@@ -762,7 +889,7 @@ export const SuperAdminAccountsPage = () => {
                         </th>
 
                         <td data-label="Peran & Kelas">
-                          <div className="space-y-1">
+                          <div className="flex flex-wrap items-center gap-1.5">
                             <span
                               className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-lg border text-xs font-semibold whitespace-nowrap ${
                                 isAdmin
@@ -778,7 +905,13 @@ export const SuperAdminAccountsPage = () => {
                             </span>
                             {u.jabatan_kelas &&
                               u.jabatan_kelas.toLowerCase() !== 'guru' && (
-                                <span className="block text-xs text-slate-500">
+                                <span
+                                  className={`inline-flex items-center px-2.5 py-0.5 rounded-lg border text-xs font-bold whitespace-nowrap ${
+                                    isAdmin
+                                      ? 'bg-slate-100 text-slate-700 border-slate-200'
+                                      : 'bg-sky-50 text-sky-800 border-sky-200'
+                                  }`}
+                                >
                                   {u.jabatan_kelas}
                                 </span>
                               )}
@@ -1027,13 +1160,15 @@ export const SuperAdminAccountsPage = () => {
 
             <div className="space-y-1.5">
               <label htmlFor="edit-jabatan" className="text-sm font-semibold text-slate-700">
-                Jabatan / Kelas Mengajar
+                Plotting Kelas Mengajar
               </label>
               <input
                 id="edit-jabatan"
                 type="text"
+                list="plotting-kelas-options"
                 value={editJabatan}
                 onChange={(e) => setEditJabatan(e.target.value)}
+                placeholder="Pilih atau ketik (misal: Kelas A1)"
                 className="pjj-field-control w-full px-3.5 py-2.5 rounded-xl bg-slate-50 border border-slate-300 text-slate-900 focus:outline-none focus:bg-white focus:border-emerald-600"
               />
             </div>

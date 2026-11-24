@@ -1,4 +1,5 @@
 import { storage } from './storage.js';
+import starterRoster from '../data/starterTeachers.json';
 
 const AUTH_STORAGE_KEY = 'duniamadani_auth_user_v3_1';
 const USERNAME_RE = /^[a-z0-9._-]{3,32}$/;
@@ -25,42 +26,15 @@ const STARTER_ACCOUNTS = [
     default_pass: 'supermadani123',
     is_active: true
   },
-  {
-    id: 'usr-guru-hilmy',
-    username: 'hilmy',
-    nama_lengkap: 'Ibu Hilmy Azimah, M.Pd.',
+  ...(Array.isArray(starterRoster?.teachers) ? starterRoster.teachers : []).map((t) => ({
+    id: t.id,
+    username: t.username,
+    nama_lengkap: t.nama_lengkap,
     role: 'GURU',
-    jabatan_kelas: 'Guru',
+    jabatan_kelas: t.kelas ? `Kelas ${t.kelas}` : 'Guru',
     default_pass: 'madani123',
     is_active: true
-  },
-  {
-    id: 'usr-guru-tka',
-    username: 'gurutka',
-    nama_lengkap: 'Ibu Guru TK A',
-    role: 'GURU',
-    jabatan_kelas: 'Guru',
-    default_pass: 'madani123',
-    is_active: true
-  },
-  {
-    id: 'usr-guru-tkb',
-    username: 'gurutkb',
-    nama_lengkap: 'Ibu Guru TK B',
-    role: 'GURU',
-    jabatan_kelas: 'Guru',
-    default_pass: 'madani123',
-    is_active: true
-  },
-  {
-    id: 'usr-guru-01',
-    username: 'guru',
-    nama_lengkap: 'Guru TKIT Al Madani',
-    role: 'GURU',
-    jabatan_kelas: 'Guru',
-    default_pass: 'madani123',
-    is_active: true
-  }
+  }))
 ];
 
 const getTokenFromStorage = () => {
@@ -91,29 +65,10 @@ const toPublicLocalUser = (u) => {
   };
 };
 
-const LEGACY_STARTER_LABELS = new Set([
-  'Kepala Sekolah',
-  'Wali Kelas TK A',
-  'Wali Kelas TK B',
-  'Guru Pengelola Materi',
-  'Guru Kelas'
-]);
-
 const ensureLocalUsersSeeded = async () => {
   const existing = storage.get(storage.USERS_KEY, null);
   if (Array.isArray(existing) && existing.length > 0) {
-    let migrated = false;
-    const normalized = existing.map((u) => {
-      if (u.role !== 'SUPER_ADMIN' && LEGACY_STARTER_LABELS.has(u.jabatan_kelas)) {
-        migrated = true;
-        return { ...u, jabatan_kelas: 'Guru' };
-      }
-      return u;
-    });
-    if (migrated) {
-      storage.set(storage.USERS_KEY, normalized);
-    }
-    return normalized;
+    return existing;
   }
 
   const now = new Date().toISOString();

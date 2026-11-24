@@ -1,7 +1,7 @@
 const STORAGE_KEY = 'duniamadani_curriculum_v3_2';
-const SITE_CONFIG_KEY = 'duniamadani_site_config_v3_1';
+const SITE_CONFIG_KEY = 'duniamadani_site_config_v3_2';
 const PJJ_RECORDS_KEY = 'duniamadani_pjj_records_v3_1';
-const USERS_KEY = 'duniamadani_users_v3_2';
+const USERS_KEY = 'duniamadani_users_v3_3';
 
 export const storage = {
   get(key, fallback = null) {

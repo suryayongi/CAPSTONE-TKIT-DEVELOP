@@ -13,6 +13,9 @@ import {
 } from '../../components';
 import { Icon, MaterialIcon } from '../../utils/icons';
 import { curriculumService } from '../../services/curriculumService';
+import starterRoster from '../../data/starterTeachers.json';
+
+const DEFAULT_CLASSES = starterRoster.classes;
 
 export const SiteSettingsPage = () => {
   const queryClient = useQueryClient();
@@ -43,10 +46,10 @@ export const SiteSettingsPage = () => {
     celebration_finish_btn: 'Selesai & Kembali ke Materi',
     default_wrong_feedback: 'Hampir tepat, ayo kita amati lagi dan pilih jawaban lainnya bersama Ibu Guru.',
     pjj_class_input_mode: 'TEXT',
-    pjj_classes: ['TK A', 'TK B'],
+    pjj_classes: DEFAULT_CLASSES,
     pjj_form_note: 'Catatan Khusus PJJ: Isian nama dan kelas ini ditujukan bagi siswa yang belajar dari rumah (PJJ). Untuk belajar di kelas, Ibu Guru dapat menonaktifkannya di Studio.'
   });
-  const [pjjClassesText, setPjjClassesText] = useState('TK A, TK B');
+  const [pjjClassesText, setPjjClassesText] = useState(DEFAULT_CLASSES.join(', '));
 
   useEffect(() => {
     if (configData?.data) {
@@ -78,7 +81,7 @@ export const SiteSettingsPage = () => {
 
     const payload = {
       ...formState,
-      pjj_classes: parsedClasses.length > 0 ? parsedClasses : ['TK A', 'TK B']
+      pjj_classes: parsedClasses.length > 0 ? parsedClasses : DEFAULT_CLASSES
     };
 
     const res = await curriculumService.saveSiteConfig(payload);
@@ -395,7 +398,7 @@ export const SiteSettingsPage = () => {
                       required
                       value={pjjClassesText}
                       onChange={(e) => setPjjClassesText(e.target.value)}
-                      placeholder="Contoh: TK A, TK B, Kelompok Bermain"
+                      placeholder="Contoh: A1, A2, A3, B1, B2, B3, B4"
                     />
                     <div className="flex flex-wrap items-center gap-2 pt-1">
                       <span className="text-xs font-semibold text-slate-500">Pratinjau Pilihan:</span>

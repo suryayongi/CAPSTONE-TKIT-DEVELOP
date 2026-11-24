@@ -2,6 +2,9 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Icon, MaterialIcon } from '../utils/icons';
 import { Button } from './Button';
 import { PREDICATE_META } from '../utils/closingGame';
+import starterRoster from '../data/starterTeachers.json';
+
+const DEFAULT_CLASSES = starterRoster.classes;
 
 /**
  * Formulir Identitas Anak (Nama & Kelas) Khusus Mode PJJ di Akhir Video (Poin 6)
@@ -18,19 +21,19 @@ const PjjCheckinDialog = ({
   videoTitle = 'Video Pembelajaran',
   pjjNote = '',
   classInputMode = 'TEXT',
-  classOptions = ['TK A', 'TK B'],
+  classOptions = DEFAULT_CLASSES,
   predicate = 'EXCELLENT',
   isSubmitting = false,
   onSubmit,
   onSkip
 }) => {
   const safeClasses =
-    Array.isArray(classOptions) && classOptions.length > 0 ? classOptions : ['TK A', 'TK B'];
+    Array.isArray(classOptions) && classOptions.length > 0 ? classOptions : DEFAULT_CLASSES;
   const isSelectMode = classInputMode === 'SELECT' && safeClasses.length > 0;
 
   const [studentName, setStudentName] = useState('');
   const [selectedClass, setSelectedClass] = useState(
-    isSelectMode ? safeClasses[0] || 'TK A' : ''
+    isSelectMode ? safeClasses[0] || DEFAULT_CLASSES[0] : ''
   );
   const [parentNote, setParentNote] = useState('');
   const [touchedName, setTouchedName] = useState(false);
@@ -258,7 +261,7 @@ const PjjCheckinDialog = ({
                 onBlur={() => setTouchedClass(true)}
                 aria-invalid={isClassInvalid ? 'true' : 'false'}
                 aria-describedby="pjj-class-help"
-                placeholder="Contoh: TK A, TK B, atau Kelompok Bermain"
+                placeholder="Contoh: A1, A2, B1, atau B4"
                 className={`pjj-field-control w-full min-h-[48px] px-4 py-3 font-semibold text-slate-800 bg-slate-50 border-2 rounded-xl transition-colors focus:outline-none focus:bg-white ${
                   isClassInvalid
                     ? 'border-red-500 focus:border-red-600'

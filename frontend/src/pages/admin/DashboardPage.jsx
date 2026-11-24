@@ -97,7 +97,7 @@ export const DashboardPage = () => {
               Studio Kurikulum & Bank Materi Bersama
             </h1>
             <p className="text-xs sm:text-sm font-medium text-emerald-100/85 mt-1.5 max-w-xl leading-relaxed">
-              Seluruh tema, subtema, video, dan kuis tersimpan terpusat agar dapat dipakai ulang bersama oleh semua guru TK A & TK B.
+              Seluruh tema, subtema, video, dan kuis tersimpan terpusat agar dapat dipakai ulang bersama oleh semua guru Kelas A1–A3 & B1–B4.
             </p>
           </div>
         </div>

@@ -2,9 +2,15 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { createRequire } from 'node:module';
 import { neon } from '@neondatabase/serverless';
-import { getStarterUsersSeed, hashPassword, normalizeRole } from './_auth.js';
+import {
+  getStarterUsersSeed,
+  hashPassword,
+  loadStarterRoster,
+  normalizeRole
+} from './_auth.js';
 
 const require = createRequire(import.meta.url);
+const ROSTER_MIGRATION_ID = 'migration_roster_v2_2026_11_23';
 
 export const toPublicUser = (row) => {
   if (!row) return null;
@@ -21,39 +27,21 @@ export const toPublicUser = (row) => {
   };
 };
 
-const loadDefaultSiteConfig = () => {
+const loadSeedJson = (filename) => {
   try {
-    return structuredClone(require('../src/data/defaultSiteConfig.json'));
+    return structuredClone(require(`../src/data/${filename}`));
   } catch {
     const candidates = [
-      new URL('../src/data/defaultSiteConfig.json', import.meta.url),
-      path.join(process.cwd(), 'src', 'data', 'defaultSiteConfig.json'),
-      path.join(process.cwd(), 'frontend', 'src', 'data', 'defaultSiteConfig.json')
+      new URL(`../src/data/${filename}`, import.meta.url),
+      path.join(process.cwd(), 'src', 'data', filename),
+      path.join(process.cwd(), 'frontend', 'src', 'data', filename)
     ];
     for (const p of candidates) {
       if (fs.existsSync(p)) {
         return JSON.parse(fs.readFileSync(p, 'utf8'));
       }
     }
-    throw new Error('Tidak dapat menemukan seed defaultSiteConfig.json');
-  }
-};
-
-const loadDefaultCurriculum = () => {
-  try {
-    return structuredClone(require('../src/data/defaultCurriculum.json'));
-  } catch {
-    const candidates = [
-      new URL('../src/data/defaultCurriculum.json', import.meta.url),
-      path.join(process.cwd(), 'src', 'data', 'defaultCurriculum.json'),
-      path.join(process.cwd(), 'frontend', 'src', 'data', 'defaultCurriculum.json')
-    ];
-    for (const p of candidates) {
-      if (fs.existsSync(p)) {
-        return JSON.parse(fs.readFileSync(p, 'utf8'));
-      }
-    }
-    throw new Error('Tidak dapat menemukan seed defaultCurriculum.json');
+    throw new Error(`Tidak dapat menemukan seed ${filename}`);
   }
 };
 
@@ -230,10 +218,10 @@ export const ensureSchemaAndSeed = async (forceReset = false) => {
       }
     }
 
-    const existingConfig = await sql`SELECT id FROM site_config WHERE id = 'default' LIMIT 1`;
+    const existingConfig = await sql`SELECT id, config_json FROM site_config WHERE id = 'default' LIMIT 1`;
     const isFirstEverInit = existingConfig.length === 0;
     if (forceReset || isFirstEverInit) {
-      const defaultSiteConfig = loadDefaultSiteConfig();
+      const defaultSiteConfig = loadSeedJson('defaultSiteConfig.json');
       await sql`
         INSERT INTO site_config (id, config_json, updated_at)
         VALUES ('default', ${JSON.stringify(defaultSiteConfig)}::jsonb, NOW())
@@ -252,8 +240,53 @@ export const ensureSchemaAndSeed = async (forceReset = false) => {
         await sql`DELETE FROM themes`;
       }
 
-      const defaultCurriculum = loadDefaultCurriculum();
+      const defaultCurriculum = loadSeedJson('defaultCurriculum.json');
       await seedCurriculumIntoDb(sql, defaultCurriculum);
+    }
+
+    // Migrasi satu kali dari akun dummy lama (hilmy/gurutka/gurutkb/guru) ke 12 guru resmi + plotting kelas A1-B4
+    const rosterMigrationDone = await sql`
+      SELECT id FROM site_config WHERE id = ${ROSTER_MIGRATION_ID} LIMIT 1
+    `;
+    if (forceReset || rosterMigrationDone.length === 0) {
+      const roster = loadStarterRoster();
+      const legacyIds = Array.isArray(roster?.legacySeedIds) ? roster.legacySeedIds : [];
+      if (legacyIds.length > 0) {
+        await sql`DELETE FROM users WHERE id = ANY(${legacyIds}::text[])`;
+      }
+
+      const seedUsers = getStarterUsersSeed();
+      for (const u of seedUsers) {
+        const pwdHash = hashPassword(u.plain_password);
+        await sql`
+          INSERT INTO users (id, username, nama_lengkap, role, jabatan_kelas, password_hash, is_active)
+          VALUES (${u.id}, ${u.username}, ${u.nama_lengkap}, ${u.role}, ${u.jabatan_kelas}, ${pwdHash}, ${u.is_active})
+          ON CONFLICT (username) DO NOTHING
+        `;
+      }
+
+      const currentCfg = existingConfig[0]?.config_json;
+      if (
+        currentCfg &&
+        Array.isArray(currentCfg.pjj_classes) &&
+        currentCfg.pjj_classes.length === 2 &&
+        currentCfg.pjj_classes[0] === 'TK A' &&
+        currentCfg.pjj_classes[1] === 'TK B' &&
+        Array.isArray(roster?.classes)
+      ) {
+        const upgradedCfg = { ...currentCfg, pjj_classes: roster.classes };
+        await sql`
+          UPDATE site_config
+          SET config_json = ${JSON.stringify(upgradedCfg)}::jsonb, updated_at = NOW()
+          WHERE id = 'default'
+        `;
+      }
+
+      await sql`
+        INSERT INTO site_config (id, config_json, updated_at)
+        VALUES (${ROSTER_MIGRATION_ID}, '{"migrated":true}'::jsonb, NOW())
+        ON CONFLICT (id) DO NOTHING
+      `;
     }
   };
 
@@ -423,7 +456,7 @@ export const loadFullData = async () => {
     sql`SELECT * FROM cue_points ORDER BY detik_muncul ASC, created_at ASC`
   ]);
 
-  const defaultSiteConfig = loadDefaultSiteConfig();
+  const defaultSiteConfig = loadSeedJson('defaultSiteConfig.json');
   const siteConfig = {
     ...defaultSiteConfig,
     ...(cfgRows[0]?.config_json || {})
