@@ -449,16 +449,21 @@
 .duo-nav-pill {
   display: inline-flex;
   align-items: center;
-  gap: 0.625rem;
-  padding: 0.625rem 1rem;
+  gap: 0.55rem;
+  min-width: 0;
+  max-width: 100%;
+  min-block-size: 2.75rem;
+  padding: 0.55rem 0.75rem;
   border-radius: var(--radius-sm);
   border: 2px solid transparent;
   font-family: 'Nunito', sans-serif;
-  font-size: 0.875rem;
+  font-size: 0.8125rem;
   font-weight: 800;
-  letter-spacing: 0.05em;
+  line-height: 1.25;
+  letter-spacing: 0.02em;
   text-transform: uppercase;
   color: var(--madani-wolf);
+  overflow-wrap: break-word;
   transition: all 0.15s ease;
   cursor: pointer;
   text-decoration: none;

@@ -25,19 +25,19 @@ export const AdminSidebar = ({
   const renderSidebarBody = (collapsedMode = false) => (
     <div
       className={`h-full flex flex-col justify-between ${
-        collapsedMode ? 'p-3 items-center' : 'p-4 sm:p-5'
+        collapsedMode ? 'p-3 items-center' : 'p-3.5 sm:p-4'
       }`}
     >
-      <div className="w-full">
+      <div className="w-full min-w-0">
         {/* Brand Header Kuning Al Madani + Emerald (1 Baris Penuh) */}
         <div
           className={`flex items-center ${
-            collapsedMode ? 'justify-center mb-6' : 'justify-between gap-2 px-1 mb-7'
+            collapsedMode ? 'justify-center mb-6' : 'justify-between gap-2 px-1 mb-6'
           }`}
         >
           <Link
             to="/"
-            className="flex items-center gap-3 group min-w-0"
+            className="flex items-center gap-2.5 group min-w-0"
             title="Dunia Madani — Ruang Studio Guru"
           >
             <div className="shrink-0 transition-transform duration-200 group-hover:scale-110 group-hover:-rotate-3">
@@ -45,11 +45,11 @@ export const AdminSidebar = ({
             </div>
             {!collapsedMode && (
               <div className="min-w-0">
-                <span className="font-duo-display text-2xl font-bold block leading-none whitespace-nowrap">
+                <span className="font-duo-display text-xl xl:text-2xl font-bold block leading-tight truncate">
                   <span className="text-[#B45309]">Dunia</span>{' '}
                   <span className="text-[#2D6A4F]">Madani</span>
                 </span>
-                <span className="text-[11px] font-bold text-slate-500 block mt-1 whitespace-nowrap">
+                <span className="text-[11px] font-bold text-slate-500 block mt-0.5 truncate">
                   {isSuperAdmin ? 'Portal Super Admin' : 'Ruang Studio Guru'}
                 </span>
               </div>
@@ -57,8 +57,8 @@ export const AdminSidebar = ({
           </Link>
         </div>
 
-        {/* Navigation Pills (1 Baris Tanpa Bertingkat & Tanpa Layar Anak) */}
-        <nav className="flex flex-col gap-2">
+        {/* Navigation Pills */}
+        <nav className="flex flex-col gap-1.5">
           {navItems.map((item) => (
             <NavLink
               key={item.to}
@@ -66,13 +66,15 @@ export const AdminSidebar = ({
               onClick={onCloseMobile}
               title={item.label}
               className={({ isActive }) =>
-                `duo-nav-pill whitespace-nowrap ${
+                `duo-nav-pill ${
                   collapsedMode ? '!px-0 !py-3 w-12 h-12 justify-center mx-auto' : 'w-full'
                 } ${isActive ? 'active' : ''}`
               }
             >
               <MaterialIcon name={item.icon} className="text-xl shrink-0" />
-              {!collapsedMode && <span className="whitespace-nowrap">{item.label}</span>}
+              {!collapsedMode && (
+                <span className="min-w-0 flex-1 text-left leading-snug">{item.label}</span>
+              )}
             </NavLink>
           ))}
         </nav>
@@ -90,7 +92,7 @@ export const AdminSidebar = ({
             }`}
           >
             {!collapsedMode && (
-              <span className="text-xs font-extrabold uppercase tracking-wider whitespace-nowrap">
+              <span className="min-w-0 text-left text-xs font-extrabold uppercase tracking-wide">
                 Minimalkan Menu
               </span>
             )}
@@ -106,7 +108,7 @@ export const AdminSidebar = ({
 
   return (
     <>
-      {/* Sidebar Desktop (Lebar w-72 agar teks 1 baris, atau w-20 saat diminimalkan) */}
+      {/* Sidebar Desktop (Lebar w-72 agar muat lega, atau w-20 saat diminimalkan) */}
       <aside
         className={`hidden lg:block ${
           isCollapsed ? 'w-20' : 'w-72'
@@ -122,7 +124,7 @@ export const AdminSidebar = ({
             onClick={onCloseMobile}
             className="fixed inset-0 bg-black/60 backdrop-blur-xs transition-opacity"
           />
-          <aside className="relative w-72 bg-white h-full shadow-2xl z-10 overflow-y-auto">
+          <aside className="relative w-72 max-w-[85vw] bg-white h-full shadow-2xl z-10 overflow-y-auto overflow-x-hidden">
             {renderSidebarBody(false)}
           </aside>
         </div>
